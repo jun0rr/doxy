@@ -19,7 +19,7 @@
  * endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.
  */
 
-package net.jun0rr.doxy.server.http.util;
+package net.jun0rr.doxy.http.util;
 
 import net.jun0rr.doxy.common.StringValue;
 import io.netty.handler.codec.http.QueryStringDecoder;

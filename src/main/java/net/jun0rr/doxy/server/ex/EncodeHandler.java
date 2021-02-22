@@ -16,10 +16,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import net.jun0rr.doxy.server.http.HttpExchange;
-import net.jun0rr.doxy.server.http.HttpHandler;
-import net.jun0rr.doxy.server.http.HttpRequest;
-import net.jun0rr.doxy.server.http.HttpResponse;
+import net.jun0rr.doxy.http.HttpExchange;
+import net.jun0rr.doxy.http.HttpHandler;
+import net.jun0rr.doxy.http.HttpRequest;
+import net.jun0rr.doxy.http.HttpResponse;
 
 
 /**

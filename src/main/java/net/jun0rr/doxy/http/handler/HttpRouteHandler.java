@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.handler;
+package net.jun0rr.doxy.http.handler;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import net.jun0rr.doxy.server.http.HttpExchange;
-import net.jun0rr.doxy.server.http.HttpHandler;
-import net.jun0rr.doxy.server.http.HttpRoute;
+import net.jun0rr.doxy.http.HttpExchange;
+import net.jun0rr.doxy.http.HttpHandler;
+import net.jun0rr.doxy.http.HttpRoute;
 
 
 /**

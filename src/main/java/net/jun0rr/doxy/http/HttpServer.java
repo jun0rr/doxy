@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http;
+package net.jun0rr.doxy.http;
 
 import net.jun0rr.doxy.tcp.*;
 import io.netty.bootstrap.ServerBootstrap;

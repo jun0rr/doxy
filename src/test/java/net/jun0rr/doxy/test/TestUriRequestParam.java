@@ -5,7 +5,7 @@
  */
 package net.jun0rr.doxy.test;
 
-import net.jun0rr.doxy.server.http.util.RequestParam;
+import net.jun0rr.doxy.http.util.RequestParam;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

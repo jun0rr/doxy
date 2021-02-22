@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http;
+package net.jun0rr.doxy.http;
 
-import net.jun0rr.doxy.server.http.handler.HttpConnectHandler;
-import net.jun0rr.doxy.server.http.handler.HttpInboundHandler;
+import net.jun0rr.doxy.http.handler.HttpConnectHandler;
+import net.jun0rr.doxy.http.handler.HttpInboundHandler;
 import net.jun0rr.doxy.tcp.*;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
@@ -19,8 +19,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
-import net.jun0rr.doxy.server.http.handler.HttpClientWriterHandler;
-import net.jun0rr.doxy.server.http.handler.HttpWriteOnConnectHandler;
+import net.jun0rr.doxy.http.handler.HttpClientWriterHandler;
+import net.jun0rr.doxy.http.handler.HttpWriteOnConnectHandler;
 
 
 /**

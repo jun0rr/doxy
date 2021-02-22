@@ -15,7 +15,7 @@ import net.jun0rr.doxy.common.ConsumerConditional;
 import net.jun0rr.doxy.common.InstanceOf;
 import net.jun0rr.doxy.common.SupplierConditional;
 import net.jun0rr.doxy.common.VoidConditional;
-import net.jun0rr.doxy.server.http.HttpRequest;
+import net.jun0rr.doxy.http.HttpRequest;
 import org.junit.jupiter.api.Test;
 
 

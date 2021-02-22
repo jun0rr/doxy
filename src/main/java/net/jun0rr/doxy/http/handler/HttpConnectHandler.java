@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.handler;
+package net.jun0rr.doxy.http.handler;
 
 import net.jun0rr.doxy.tcp.*;
 import io.netty.channel.ChannelHandlerContext;

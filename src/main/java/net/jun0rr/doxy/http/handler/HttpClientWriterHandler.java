@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.handler;
+package net.jun0rr.doxy.http.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -15,8 +15,8 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.nio.charset.StandardCharsets;
-import net.jun0rr.doxy.server.http.HttpExchange;
-import net.jun0rr.doxy.server.http.HttpRequest;
+import net.jun0rr.doxy.http.HttpExchange;
+import net.jun0rr.doxy.http.HttpRequest;
 
 
 /**

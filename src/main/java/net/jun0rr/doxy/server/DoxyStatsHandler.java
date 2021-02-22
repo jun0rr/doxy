@@ -18,8 +18,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import net.jun0rr.doxy.server.http.HttpExchange;
-import net.jun0rr.doxy.server.http.HttpHandler;
+import net.jun0rr.doxy.http.HttpExchange;
+import net.jun0rr.doxy.http.HttpHandler;
 import us.pserver.tools.FileSizeFormatter;
 import us.pserver.tools.date.DateDiff;
 

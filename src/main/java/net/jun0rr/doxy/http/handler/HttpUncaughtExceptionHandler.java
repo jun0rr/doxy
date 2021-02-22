@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.handler;
+package net.jun0rr.doxy.http.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -12,8 +12,8 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import net.jun0rr.doxy.server.http.HttpExchange;
-import net.jun0rr.doxy.server.http.HttpResponse;
+import net.jun0rr.doxy.http.HttpExchange;
+import net.jun0rr.doxy.http.HttpResponse;
 
 
 /**
