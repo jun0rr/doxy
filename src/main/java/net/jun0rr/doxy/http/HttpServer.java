@@ -13,10 +13,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import net.jun0rr.doxy.cfg.Host;
 
 
-/**
- *
- * @author juno
- */
 public class HttpServer extends AbstractBootstrapChannel {
   
   public HttpServer(ServerBootstrap boot, ChannelHandlerSetup<HttpHandler> setup) {

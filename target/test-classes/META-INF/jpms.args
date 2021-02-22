@@ -1,0 +1,4 @@
+--patch-module
+doxy=_
+--add-reads
+doxy=ALL-UNNAMED

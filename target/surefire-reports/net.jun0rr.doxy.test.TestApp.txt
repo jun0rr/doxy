@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: net.jun0rr.doxy.test.TestApp
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.262 s <<< FAILURE! - in net.jun0rr.doxy.test.TestApp
+app  Time elapsed: 0.246 s  <<< ERROR!
+net.jun0rr.doxy.common.opt.OptionParseException: Mandatory option missing: -t/--target
+	at doxy@1.0-SNAPSHOT/net.jun0rr.doxy.test.TestApp.app(TestApp.java:230)
+
