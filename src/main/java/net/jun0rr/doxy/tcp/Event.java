@@ -6,21 +6,16 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.util.concurrent.Future;
-import java.util.Queue;
 
 /**
  *
  * @author juno
  */
-public interface EventContext {
+public interface Event {
   
   public Future future();
   
-  public EventContext future(Future f);
-  
-  public Queue messages();
-  
-  public EventContext write(Object msg);
+  public Event future(Future f);
   
   public TcpChannel channel();
   

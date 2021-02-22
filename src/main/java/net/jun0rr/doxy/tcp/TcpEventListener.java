@@ -15,6 +15,6 @@ import java.util.EventListener;
  */
 public interface TcpEventListener extends EventListener {
   
-  public Future apply(EventContext ctx) throws Exception;
+  public Future apply(Event ctx) throws Exception;
   
 }

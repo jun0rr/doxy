@@ -36,9 +36,9 @@ public class TcpClient extends AbstractBootstrapChannel {
   }
   
   public EventChain connect(Host host) {
-    channelNotCreated();
+    failOnChannelInitialized();
     ChannelFuture cf = setupBootstrap().connect(host.toSocketAddr());
-    this.nettyChannel = cf.channel();
+    this.initChannel(cf.channel());
     context.future(cf);
     return events();
   }

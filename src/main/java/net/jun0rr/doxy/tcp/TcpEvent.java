@@ -8,74 +8,39 @@ package net.jun0rr.doxy.tcp;
 import io.netty.util.concurrent.Future;
 import java.util.Objects;
 
-
 /**
  *
  * @author juno
  */
-public class TcpEvent<T> {
+public class TcpEvent implements Event {
   
-  private final Future future;
+  private volatile Future future;
   
-  private final T attachment;
+  private final TcpChannel channel;
   
-  public TcpEvent(Future f, T o) {
+  public TcpEvent(TcpChannel ch, Future f) {
+    this.channel = Objects.requireNonNull(ch, "Bad null TcpChannel");
     this.future = f;
-    this.attachment = o;
   }
   
-  public static <U> TcpEvent of(Future f, U u) {
-    return new TcpEvent(f, u);
+  public TcpEvent(TcpChannel ch) {
+    this(ch, null);
   }
   
+  @Override
   public Future future() {
     return future;
   }
-  
-  public TcpEvent future(Future f) {
-    return of(f, attachment);
-  }
-  
-  public T attachment() {
-    return attachment;
-  }
-  
-  public TcpEvent attachment(T o) {
-    return of(future, o);
-  }
-  
+
   @Override
-  public int hashCode() {
-    int hash = 7;
-    hash = 89 * hash + Objects.hashCode(this.future);
-    hash = 89 * hash + Objects.hashCode(this.attachment);
-    return hash;
+  public Event future(Future f) {
+    future = f;
+    return this;
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final TcpEvent other = (TcpEvent) obj;
-    if (!Objects.equals(this.future(), other.future())) {
-      return false;
-    }
-    if (!Objects.equals(this.attachment(), other.attachment())) {
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "TcpEvent{" + "future=" + future + ", attachment=" + attachment + '}';
+  public TcpChannel channel() {
+    return channel;
   }
   
 }

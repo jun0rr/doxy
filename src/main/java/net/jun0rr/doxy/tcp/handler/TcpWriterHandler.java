@@ -8,7 +8,7 @@ package net.jun0rr.doxy.tcp.handler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import net.jun0rr.doxy.tcp.TcpExchange;
@@ -30,8 +30,12 @@ public class TcpWriterHandler extends ChannelOutboundHandlerAdapter {
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     //log.info("message={}, promise={}", msg, cp);
     try {
+      System.out.println("[-TcpWriterHandler.write-] Promise=" + cp);
       Object out = (msg instanceof TcpExchange) ? ((TcpExchange)msg).message() : msg;
-      ctx.writeAndFlush(out, cp);
+      GenericFutureListener fl = f->{
+        System.out.println("[--TcpWriterHandler.write--] Write Future completed! Promise=" + cp);
+      };
+      ctx.writeAndFlush(out, cp).addListener(fl);
     }
     catch(Exception e) {
       this.exceptionCaught(ctx, e);

@@ -14,9 +14,9 @@ import java.util.function.Consumer;
  */
 public interface EventChain {
   
-  public EventChain onComplete(Consumer<EventContext> success);
+  public EventChain onComplete(Consumer<Event> success);
   
-  public EventChain onComplete(Consumer<EventContext> success, Consumer<Throwable> error);
+  public EventChain onComplete(Consumer<Event> success, Consumer<Throwable> error);
   
   public EventChain execute();
   
@@ -30,6 +30,6 @@ public interface EventChain {
   
   public EventChain write(Object obj);
   
-  public EventContext context();
+  public Event context();
   
 }

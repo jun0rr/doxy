@@ -26,20 +26,20 @@ public class ContextEventChain implements EventChain {
   
   private final ChannelHandlerContext context;
   
-  private final EventContext econtext;
+  private final Event econtext;
   
   protected final List<TcpEventListener> events;
   
   protected final ChannelPromise promise;
   
-  public ContextEventChain(EventContext ecx, ChannelHandlerContext ctx, ChannelPromise cp) {
+  public ContextEventChain(Event ecx, ChannelHandlerContext ctx, ChannelPromise cp) {
     this.econtext = Objects.requireNonNull(ecx, "Bad null EventContext");
     this.context = Objects.requireNonNull(ctx, "Bad null ChannelHandlerContext");
     this.events = new LinkedList<>();
     this.promise = cp;
   }
   
-  public ContextEventChain(EventContext ectx, ChannelHandlerContext ctx) {
+  public ContextEventChain(Event ectx, ChannelHandlerContext ctx) {
     this(ectx, ctx, null);
   }
   
@@ -53,12 +53,12 @@ public class ContextEventChain implements EventChain {
   }
   
   @Override
-  public EventChain onComplete(Consumer<EventContext> success) {
+  public EventChain onComplete(Consumer<Event> success) {
     return onComplete(success, Unchecked::unchecked);
   }
   
   @Override
-  public EventChain onComplete(Consumer<EventContext> success, Consumer<Throwable> error) {
+  public EventChain onComplete(Consumer<Event> success, Consumer<Throwable> error) {
     if(success != null && error != null) events.add(c->{
       if(c.future().isDone()) {
         if(c.future().isSuccess()) success.accept(c);
@@ -128,7 +128,7 @@ public class ContextEventChain implements EventChain {
   }
   
   @Override
-  public EventContext context() {
+  public Event context() {
     return econtext;
   }
 

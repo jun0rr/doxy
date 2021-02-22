@@ -18,7 +18,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 import net.jun0rr.doxy.tcp.handler.TcpOutboundHandler;
-import net.jun0rr.doxy.tcp.handler.TcpWriteOnConnectHandler;
 import net.jun0rr.doxy.tcp.handler.TcpWriterHandler;
 
 
@@ -47,7 +46,6 @@ public class TcpHandlerSetup extends AbstractChannelHandlerSetup<TcpHandler> {
       ls.add(ofn.apply(outputHandlers().get(i)));
     }
     connectHandlers().stream().map(cfn).forEach(ls::add);
-    ls.add(()->new TcpWriteOnConnectHandler(tch));
     inputHandlers().stream().map(ifn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return new AddingLastChannelInitializer(sslHandlerFactory(), ls);

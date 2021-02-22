@@ -99,7 +99,7 @@ public class TestTcpServer {
         .onComplete(c->System.out.println("[CLIENT] Connected to: " + c.channel().remoteHost()))
         //.write(Unpooled.copiedBuffer(message, StandardCharsets.UTF_8))
         .write(message)
-        .onComplete(c->System.out.println("[CLIENT] Message sent: " + message))
+        .onComplete(c->System.out.println("[CLIENT] Message sent!"))
         .execute()
         .awaitShutdown();
     server.events()
@@ -155,56 +155,6 @@ public class TestTcpServer {
         .execute()
         .awaitShutdown();
     server.events().awaitShutdown();
-  }
-  
-  @Test
-  public void timestampServerClient2() throws InterruptedException, URISyntaxException {
-    System.out.println("------ timestampServerClient2 ------");
-    Host host = Host.of("localhost", 1212);
-    Path kspath = Paths.get(getClass().getClassLoader().getResource("doxy.jks").toURI());
-    SSLHandlerFactory ssl = SSLHandlerFactory.forServer(kspath, "32132155".toCharArray());
-    String message = Instant.now().toString();
-    ChannelHandlerSetup setup = TcpHandlerSetup.newSetup()
-        .enableSSL(ssl)
-        .addConnectHandler(()-> x->{
-          System.out.println("[SERVER] Client connected: " + x.channel().remoteHost());
-        })
-        .addOutputHandler(()-> x->{
-          return x.withMessage(Unpooled.copiedBuffer(x.<String>message(), StandardCharsets.UTF_8)).sendAndClose();
-        });
-    TcpChannel server = TcpServer.open(setup)
-        .bind(host)
-        .onComplete(c->System.out.println("[SERVER] Listening on " + c.channel().localHost()))
-        .write(message)
-        .onComplete(c->System.out.println("[SERVER] Message sent!"))
-        .execute()
-        .context().channel();
-    setup = TcpHandlerSetup.newSetup()
-        .enableSSL(SSLHandlerFactory.forClient())
-        .addInputHandler(()-> x->{
-          return x.withMessage(x.<ByteBuf>message().toString(StandardCharsets.UTF_8)).forward();
-        })
-        .addInputHandler(()-> x->{
-          System.out.println("[CLIENT] Received: " + x.message());
-          Assertions.assertEquals(message, x.message());
-          return x.forward();
-        })
-        .addInputHandler(()-> x->{
-          x.bootstrapChannel().events()
-              .shutdown()
-              .onComplete(c->System.out.println("[CLIENT] Shutdown completed!"))
-              .execute();
-          return x.empty();
-        });
-    TcpClient.open(setup)
-        .connect(host)
-        .onComplete(c->System.out.println("[CLIENT] Connected to " + c.channel().remoteHost()))
-        .execute()
-        .awaitShutdown();
-    server.events()
-        .shutdown()
-        .onComplete(c->System.out.println("[SERVER] Shutdown complete!"))
-        .executeSync();
   }
   
   //@Test

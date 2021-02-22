@@ -9,7 +9,6 @@ import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -25,12 +24,6 @@ public class AbstractBootstrapChannel extends AbstractTcpChannel {
   protected final AbstractBootstrap boot;
   
   protected final ChannelHandlerSetup<? extends ChannelHandler> setup;
-  
-  public AbstractBootstrapChannel(AbstractBootstrap boot, EventLoop loop, ChannelHandlerSetup<? extends ChannelHandler> setup) {
-    super(Objects.requireNonNull(boot, "Bad null Bootstrap").config().group(), loop);
-    this.boot = boot;
-    this.setup = Objects.requireNonNull(setup, "Bad null ChannelHandlerSetup<TcpChannel,TcpHandler>");
-  }
   
   public AbstractBootstrapChannel(AbstractBootstrap boot, ChannelHandlerSetup<? extends ChannelHandler> setup) {
     super(Objects.requireNonNull(boot, "Bad null Bootstrap").config().group());

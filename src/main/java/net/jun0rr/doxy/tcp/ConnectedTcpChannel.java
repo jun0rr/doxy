@@ -5,7 +5,6 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
@@ -22,7 +21,7 @@ public class ConnectedTcpChannel extends AbstractTcpChannel {
   
   private final ChannelHandlerContext context;
   
-  private final EventContext econtext;
+  private final Event econtext;
   
   protected final ChannelPromise promise;
   
@@ -31,8 +30,8 @@ public class ConnectedTcpChannel extends AbstractTcpChannel {
         .channel().eventLoop().parent());
     this.context = ctx;
     this.promise = prms;
-    this.econtext = new TcpEventContext(this, (prms != null) ? prms : ctx.newSucceededFuture());
-    this.nettyChannel = ctx.channel();
+    this.econtext = new TcpEvent(this, (prms != null) ? prms : ctx.newSucceededFuture());
+    this.initChannel(ctx.channel());
   }
   
   public ConnectedTcpChannel(ChannelHandlerContext ctx) {
@@ -55,11 +54,6 @@ public class ConnectedTcpChannel extends AbstractTcpChannel {
   @Override
   public EventLoopGroup group() {
     return group;
-  }
-  
-  @Override
-  public Channel nettyChannel() {
-    return context.channel();
   }
   
   @Override

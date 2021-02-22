@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="net.jun0rr.doxy.test.TestTcpServer" time="11.389" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="net.jun0rr.doxy.test.TestTcpServer" time="7.108" tests="2" errors="0" skipped="0" failures="0">
   <properties>
     <property name="sun.desktop" value="gnome"/>
     <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
@@ -16,7 +16,7 @@
     <property name="user.country" value="BR"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.boot.library.path" value="/opt/graalvm-ce-java11-20.0.0/lib"/>
-    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /media/storage/java/doxy/target/surefire 2021-02-21T21-01-11_330-jvmRun1 surefire13059569568304151934tmp surefire_02587666932746117045tmp"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /media/storage/java/doxy/target/surefire 2021-02-22T14-52-59_154-jvmRun1 surefire11896005820386325638tmp surefire_09236668741588129361tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="test" value="net.jun0rr.doxy.test.TestTcpServer"/>
     <property name="surefire.test.class.path" value="/home/juno/java/doxy/target/test-classes:/home/juno/.m2/repository/org/slf4j/slf4j-api/1.7.21/slf4j-api-1.7.21.jar:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.6.0/junit-jupiter-api-5.6.0.jar:/home/juno/.m2/repository/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.jar:/home/juno/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-commons/1.6.0/junit-platform-commons-1.6.0.jar:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.6.0/junit-jupiter-engine-5.6.0.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-engine/1.6.0/junit-platform-engine-1.6.0.jar:"/>
@@ -61,7 +61,6 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="55.0"/>
   </properties>
-  <testcase name="timestampServerClient2" classname="net.jun0rr.doxy.test.TestTcpServer" time="4.79"/>
-  <testcase name="timestampServerClient" classname="net.jun0rr.doxy.test.TestTcpServer" time="2.28"/>
-  <testcase name="echoServerClient" classname="net.jun0rr.doxy.test.TestTcpServer" time="4.302"/>
+  <testcase name="timestampServerClient" classname="net.jun0rr.doxy.test.TestTcpServer" time="2.835"/>
+  <testcase name="echoServerClient" classname="net.jun0rr.doxy.test.TestTcpServer" time="4.263"/>
 </testsuite>

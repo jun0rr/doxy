@@ -22,31 +22,31 @@ import us.pserver.tools.Unchecked;
  */
 public class TcpEventChain implements EventChain {
   
-  protected final EventContext context;
+  protected final Event context;
   
   protected final List<TcpEventListener> events;
   
   protected final ChannelPromise promise;
   
   
-  public TcpEventChain(EventContext ctx, ChannelPromise cp) {
+  public TcpEventChain(Event ctx, ChannelPromise cp) {
     this.context = Objects.requireNonNull(ctx, "Bad null EventContext");
     this.events = new LinkedList<>();
     this.promise = cp;
   }
   
-  public TcpEventChain(EventContext ctx) {
+  public TcpEventChain(Event ctx) {
     this(ctx, null);
   }
   
   @Override
-  public EventChain onComplete(Consumer<EventContext> success) {
+  public EventChain onComplete(Consumer<Event> success) {
     return onComplete(success, Unchecked::unchecked);
   }
 
 
   @Override
-  public EventChain onComplete(Consumer<EventContext> success, Consumer<Throwable> error) {
+  public EventChain onComplete(Consumer<Event> success, Consumer<Throwable> error) {
     if(success != null && error != null) events.add(c->{
       if(c.future().isDone()) {
         if(c.future().isSuccess()) success.accept(c);
@@ -117,7 +117,18 @@ public class TcpEventChain implements EventChain {
   
   @Override
   public EventChain write(Object msg) {
-    events.add(c->c.write(msg).future());
+    events.add(c->{
+      Event e = c;
+      ChannelPromise cp = e.channel().nettyChannel().newPromise();
+      System.out.println("[--TcpEventChain.write--] Promise=" + cp);
+      GenericFutureListener fl = f->{
+        System.out.println("[--TcpEventChain.write--] Promise Executed! " + f);
+        context.future(f);
+        execute();
+      };
+      cp.addListener(fl);
+      return c.channel().nettyChannel().writeAndFlush(msg).addListener(fl);
+    });
     return this;
   }
 
@@ -128,7 +139,7 @@ public class TcpEventChain implements EventChain {
   }
 
   @Override
-  public EventContext context() {
+  public Event context() {
     return context;
   }
   

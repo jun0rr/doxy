@@ -6,7 +6,6 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -20,7 +19,7 @@ import net.jun0rr.doxy.cfg.Host;
 public class TcpServer extends AbstractBootstrapChannel {
   
   public TcpServer(ServerBootstrap boot, ChannelHandlerSetup<TcpHandler> setup) {
-    super(boot, boot.config().childGroup().next(), setup);
+    super(boot, setup);
   }
   
   public static TcpServer open(ChannelHandlerSetup<TcpHandler> setup) {
@@ -41,13 +40,18 @@ public class TcpServer extends AbstractBootstrapChannel {
   
   public EventChain bind(Host host) {
     ChannelFuture cf = setupServerBootstrap().bind(host.toSocketAddr());
-    this.nettyChannel = cf.channel();
+    this.initChannel(cf.channel());
     this.context.future(cf);
     return events();
   }
   
   public EventLoopGroup childGroup() {
     return ((ServerBootstrap)boot).config().childGroup();
+  }
+  
+  @Override
+  public EventChain events() {
+    return new TcpServerEventChain(super.events());
   }
   
 }

@@ -28,6 +28,6 @@ public interface TcpChannel extends AutoCloseable {
   
   public Host remoteHost();
   
-  public EventContext context();
+  public Event context();
   
 }
