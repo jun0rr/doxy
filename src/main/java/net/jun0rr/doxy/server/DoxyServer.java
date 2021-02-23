@@ -36,7 +36,7 @@ import net.jun0rr.doxy.tcp.ChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.SSLHandlerFactory;
 import net.jun0rr.doxy.tcp.TcpClient;
 import net.jun0rr.doxy.tcp.TcpHandler;
-import net.jun0rr.doxy.tcp.TcpHandlerSetup;
+import net.jun0rr.doxy.tcp.TcpChannelHandlerSetup;
 
 
 /**
@@ -143,7 +143,7 @@ public class DoxyServer {
           .set(System.currentTimeMillis());
     }
     return opt.orElse(DoxyChannel.of(env, p.channelID(), TcpClient.open(tcpGroup, 
-          TcpHandlerSetup.newSetup().addInputHandler(tcpHandler(p.channelID()))
+          TcpChannelHandlerSetup.newSetup().addInputHandler(tcpHandler(p.channelID()))
       ).connect(p.remote()).channel()));
   }
   
@@ -175,7 +175,7 @@ public class DoxyServer {
   public HttpServer startServer() {
     getCount("startup").set(System.currentTimeMillis());
     server.bind(env.configuration().getServerHost())
-        .onComplete(c->System.out.println("[DOXYSERVER] HttpServer listening on: " + c.localHost()))
+        .onComplete(c->System.out.println("[DOXYSERVER] HttpServer listening on: " + c.channel().localHost()))
         .executeSync();
     return server;
   }

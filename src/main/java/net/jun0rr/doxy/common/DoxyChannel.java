@@ -85,8 +85,8 @@ public interface DoxyChannel extends AutoCloseable {
 
     @Override
     public void close() {
-      Unchecked.call(()->channel.close());
-      env.channels().remove(this);
+      //Unchecked.call(()->channel.close());
+      //env.channels().remove(this);
     }
 
     @Override

@@ -51,7 +51,6 @@ public class HttpServerWriterHandler extends ChannelOutboundHandlerAdapter {
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
-      System.out.println("[HttpServerWriterHandler.write] message=" + msg);
       HttpResponse rsp;
       if(msg instanceof HttpExchange) {
         rsp = ((HttpExchange)msg).response();
@@ -66,7 +65,6 @@ public class HttpServerWriterHandler extends ChannelOutboundHandlerAdapter {
         throw new IllegalStateException("Bad message type: " + msg.getClass().getName());
       }
       if(rsp.message() != null) {
-        System.out.println("[HttpServerWriterHandler.write] message=" + rsp.message());
         ByteBuf buf;
         if(rsp.message() instanceof CharSequence) {
           buf = Unpooled.copiedBuffer(rsp.<CharSequence>message(), StandardCharsets.UTF_8);
@@ -75,7 +73,6 @@ public class HttpServerWriterHandler extends ChannelOutboundHandlerAdapter {
           buf = rsp.message();
         }
         if(buf.readableBytes() > 0) {
-          System.out.println("[HttpServerWriterHandler.write] message.readableBytes=" + buf.readableBytes());
           rsp.headers().set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
           rsp = rsp.withMessage(buf);
         }

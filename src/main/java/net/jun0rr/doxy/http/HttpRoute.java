@@ -87,13 +87,14 @@ public interface HttpRoute extends Routable {
     @Override
     public boolean match(HttpRoute r) {
       //System.out.printf("HttpRoute.match( %s ):%n", r);
-      //System.out.printf("  - '%s'.matches( '%s' ): %s%n", this.uri, );
-      return methods.stream()
+      //System.out.printf("  - '%s'.matches( '%s' ): %s%n", this.uri, r.uri(), this.uri.matches(r.uri()));
+      //System.out.printf("  - '%s'.matches( '%s' ): %s%n", r.uri(), this.uri(), r.uri().matches(this.uri()));
+      return (methods.isEmpty() || methods.stream()
           //.peek(m->System.out.printf("  - %s.equals", m))
           .anyMatch(m->
           r.methods().stream()
               //.peek(n->System.out.printf("( %s ): %s%n", n, m.equals(n)))
-              .anyMatch(m::equals)) 
+              .anyMatch(m::equals)))
           && (this.uri.equals(r.uri()) 
           || this.uri.matches(r.uri())
           || r.uri().matches(this.uri)); 

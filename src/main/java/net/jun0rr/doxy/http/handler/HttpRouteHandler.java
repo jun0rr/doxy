@@ -37,6 +37,7 @@ public class HttpRouteHandler implements HttpHandler {
   private Iterator<HttpHandler> getHandlers(HttpRoute r) {
     Iterator<HttpHandler> it = handlers.stream()
         .filter(h->h.match(r))
+        //.peek(h->System.out.printf("PASSED %s -> %s%n", r, h.route()))
         .map(h->(HttpHandler)h)
         .sorted()
         .iterator();
@@ -48,11 +49,12 @@ public class HttpRouteHandler implements HttpHandler {
   
   @Override
   public Optional<? extends HttpExchange> apply(HttpExchange he) throws Exception {
-    System.out.println("[HttpRouteHandler.apply] URI=" + he.request().uri());
     Iterator<HttpHandler> it = getHandlers(HttpRoute.of(he.request()));
     Optional<? extends HttpExchange> optx = Optional.of(he);
     while(it.hasNext() && optx.isPresent()) {
-      optx = it.next().apply(optx.get());
+      HttpHandler h = it.next();
+      //System.out.println("[HttpRouteHandler.apply] handler=" + ((RoutableHttpHandler)h).route());
+      optx = h.apply(optx.get());
     }
     return optx;
   }

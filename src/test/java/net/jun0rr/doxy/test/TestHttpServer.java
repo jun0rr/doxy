@@ -46,12 +46,12 @@ public class TestHttpServer {
             System.out.println("[SERVER] HttpHandler (R1) >>> " + x.response().message());
             return x.forward();
           })
-          .addRouteHandler(HttpRoute.of("/.*", HttpMethod.POST), ()->x->{
+          .addRouteHandler(HttpRoute.post("/.*"), ()->x->{
             System.out.println("[ROUTE] POST /.*");
             x.response().headers().add("x-routeA", x.request().uri());
             return x.withResponse(x.response().withMessage(x.request().message())).sendAndClose();
           })
-          .addRouteHandler(HttpRoute.of("/echo.*", HttpMethod.GET), ()->x->{
+          .addRouteHandler(HttpRoute.get("/echo.*"), ()->x->{
             System.out.println("[ROUTE] GET /echo.*");
             RequestParam pars = RequestParam.fromUriQueryString(x.request().uri());
             x.response().headers().set(CONNECTION, CLOSE);

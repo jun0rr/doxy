@@ -54,7 +54,6 @@ public class HttpClientWriterHandler extends ChannelOutboundHandlerAdapter {
     try {
       HttpRequest req = request(msg);
       if(req.message() != null) {
-        System.out.println("[HttpResponseHandler] message: " + req.message().getClass());
         ByteBuf buf;
         if(req.message() instanceof CharSequence) {
           buf = Unpooled.copiedBuffer(req.<CharSequence>message(), StandardCharsets.UTF_8);
@@ -63,7 +62,6 @@ public class HttpClientWriterHandler extends ChannelOutboundHandlerAdapter {
           buf = req.message();
         }
         if(buf.readableBytes() > 0) {
-          //System.out.println("[HttpResponseHandler] message.readableBytes=" + buf.readableBytes());
           req.headers().set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
         }
       }

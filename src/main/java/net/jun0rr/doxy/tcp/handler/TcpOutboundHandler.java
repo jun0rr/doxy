@@ -47,13 +47,13 @@ public class TcpOutboundHandler extends ChannelOutboundHandlerAdapter {
   private TcpExchange exchange(ChannelHandlerContext ctx, Object msg) {
     return (msg instanceof TcpExchange) 
         ? (TcpExchange) msg 
-        : TcpExchange.of(channel, new ConnectedTcpChannel(ctx), ctx, msg);
+        : TcpExchange.of(channel, new ConnectedTcpChannel(ctx), msg);
   }
   
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
-      handler.apply(exchange(ctx, msg)).ifPresent(TcpExchange::send);
+      handler.apply(exchange(ctx, msg)).ifPresent(x->ctx.writeAndFlush(x, cp));
     }
     catch(Throwable e) {
       this.exceptionCaught(ctx, e);

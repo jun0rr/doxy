@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="net.jun0rr.doxy.test.TestHttpClient" time="3.568" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="net.jun0rr.doxy.test.TestHttpClient" time="3.835" tests="1" errors="0" skipped="0" failures="0">
   <properties>
     <property name="sun.desktop" value="gnome"/>
     <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
@@ -16,15 +16,14 @@
     <property name="user.country" value="BR"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.boot.library.path" value="/opt/graalvm-ce-java11-20.0.0/lib"/>
-    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /media/storage/java/doxy/target/surefire 2021-02-21T22-23-04_572-jvmRun1 surefire17446046468750540576tmp surefire_013421215088192559386tmp"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /media/storage/java/doxy/target/surefire 2021-02-22T19-36-49_500-jvmRun1 surefire17741049109654724925tmp surefire_011419430172506395192tmp"/>
     <property name="jdk.debug" value="release"/>
-    <property name="test" value="net.jun0rr.doxy.test.TestHttpClient"/>
     <property name="surefire.test.class.path" value="/home/juno/java/doxy/target/test-classes:/home/juno/.m2/repository/org/slf4j/slf4j-api/1.7.21/slf4j-api-1.7.21.jar:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.6.0/junit-jupiter-api-5.6.0.jar:/home/juno/.m2/repository/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.jar:/home/juno/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-commons/1.6.0/junit-platform-commons-1.6.0.jar:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.6.0/junit-jupiter-engine-5.6.0.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-engine/1.6.0/junit-platform-engine-1.6.0.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
     <property name="user.home" value="/home/juno"/>
     <property name="user.language" value="pt"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
-    <property name="jdk.module.path" value="/home/juno/java/doxy/target/classes:/media/storage/java/toolbox-pom/tools/target/classes:/media/storage/java/toolbox-pom/tools-io/target/classes:/home/juno/.m2/repository/io/netty/netty-all/4.1.43.Final/netty-all-4.1.43.Final.jar:/home/juno/.m2/repository/org/bitbucket/b_c/jose4j/0.7.0/jose4j-0.7.0.jar:/home/juno/.m2/repository/com/google/code/gson/gson/2.8.2/gson-2.8.2.jar"/>
+    <property name="jdk.module.path" value="/home/juno/java/doxy/target/classes:/home/juno/.m2/repository/us/pserver/tools/1.3/tools-1.3.jar:/home/juno/.m2/repository/us/pserver/tools-io/1.3/tools-io-1.3.jar:/home/juno/.m2/repository/io/netty/netty-all/4.1.43.Final/netty-all-4.1.43.Final.jar:/home/juno/.m2/repository/org/bitbucket/b_c/jose4j/0.7.0/jose4j-0.7.0.jar:/home/juno/.m2/repository/com/google/code/gson/gson/2.8.2/gson-2.8.2.jar"/>
     <property name="java.version.date" value="2020-01-14"/>
     <property name="java.home" value="/opt/graalvm-ce-java11-20.0.0"/>
     <property name="file.separator" value="/"/>
@@ -44,7 +43,7 @@
     <property name="file.encoding" value="UTF-8"/>
     <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
     <property name="java.vendor.version" value="GraalVM CE 20.0.0"/>
-    <property name="maven.ext.class.path" value="/opt/netbeans-12.0/netbeans/java/maven-nblib/netbeans-eventspy.jar:/opt/netbeans-12.0/netbeans/java/maven-nblib/netbeans-cos.jar"/>
+    <property name="maven.ext.class.path" value="/opt/netbeans-12.0/netbeans/java/maven-nblib/netbeans-eventspy.jar"/>
     <property name="localRepository" value="/home/juno/.m2/repository"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="/tmp"/>
@@ -61,5 +60,5 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="55.0"/>
   </properties>
-  <testcase name="method" classname="net.jun0rr.doxy.test.TestHttpClient" time="3.559"/>
+  <testcase name="method" classname="net.jun0rr.doxy.test.TestHttpClient" time="3.835"/>
 </testsuite>

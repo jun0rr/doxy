@@ -39,19 +39,19 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
   private HttpExchange exchange(ChannelHandlerContext ctx, Object msg) {
     ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx);
     HttpResponse res = HttpResponse.of(HttpResponseStatus.OK);
-    return InstanceOf.of(HttpRequest.class, r->HttpExchange.of(channel, cnc, ctx, r, res))
-        .elseOf(FullHttpRequest.class, r->HttpExchange.of(channel, cnc, ctx, HttpRequest.of(r), res))
+    return InstanceOf.of(HttpRequest.class, r->HttpExchange.of(channel, cnc, r, res))
+        .elseOf(FullHttpRequest.class, r->HttpExchange.of(channel, cnc, HttpRequest.of(r), res))
         .elseOf(HttpResponse.class, r->{
           HttpRequest req = HttpRequest.CURRENT_REQUEST.get() != null
               ? HttpRequest.CURRENT_REQUEST.get()
               : HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-          return HttpExchange.of(channel, cnc, ctx, req, r);
+          return HttpExchange.of(channel, cnc, req, r);
         })
         .elseOf(FullHttpResponse.class, r->{
           HttpRequest req = HttpRequest.CURRENT_REQUEST.get() != null
               ? HttpRequest.CURRENT_REQUEST.get()
               : HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-          return HttpExchange.of(channel, cnc, ctx, req, HttpResponse.of(r));
+          return HttpExchange.of(channel, cnc, req, HttpResponse.of(r));
         })
         .elseOf(HttpExchange.class, x->x)
         .elseThrow(o->new HttpInboundException("Unknown message type: %s", o))

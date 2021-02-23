@@ -14,11 +14,11 @@ import net.jun0rr.doxy.cfg.Host;
  *
  * @author Juno
  */
-public interface TcpChannel extends AutoCloseable {
+public interface TcpChannel {
   
-  public EventChain events();
+  public EventContext events();
   
-  public EventChain closeFuture();
+  public EventContext closeFuture();
   
   public EventLoopGroup group();
   
@@ -27,7 +27,5 @@ public interface TcpChannel extends AutoCloseable {
   public Host localHost();
   
   public Host remoteHost();
-  
-  public Event context();
   
 }

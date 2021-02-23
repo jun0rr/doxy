@@ -31,8 +31,9 @@ import net.jun0rr.doxy.http.HttpRequest;
 import net.jun0rr.doxy.tcp.ChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.SSLHandlerFactory;
 import net.jun0rr.doxy.tcp.TcpChannel;
+import net.jun0rr.doxy.tcp.TcpExchange;
 import net.jun0rr.doxy.tcp.TcpHandler;
-import net.jun0rr.doxy.tcp.TcpHandlerSetup;
+import net.jun0rr.doxy.tcp.TcpChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.TcpServer;
 import us.pserver.tools.Hash;
 import us.pserver.tools.Unchecked;
@@ -79,17 +80,17 @@ public class DoxyClient {
         .addInputHandler(httpHandler());
     JwtClientFactory jcf = new JwtClientFactory(env);
     this.jwt = Unchecked.call(()->jcf.createAuthToken());
-    ChannelHandlerSetup<TcpHandler> setup = TcpHandlerSetup.newSetup()
+    ChannelHandlerSetup<TcpHandler> setup = TcpChannelHandlerSetup.newSetup()
         .addConnectHandler(connectHandler())
-        .addMessageHandler(encodeHandler())
-        .addMessageHandler(deliveryHandler());
+        .addInputHandler(encodeHandler())
+        .addInputHandler(deliveryHandler());
     this.server = TcpServer.open(setup);
     this.pullService = new PullService(env, jwt);
   }
   
   public TcpServer startServer() {
     server.bind(env.configuration().getClientHost())
-        .onComplete(c->System.out.println("[DOXYCLIENT] TcpServer listening on: " + c.localHost()))
+        .onComplete(c->System.out.println("[DOXYCLIENT] TcpServer listening on: " + c.channel().localHost()))
         .executeSync();
     server.closeFuture().onComplete(c->pullService.stop()).execute();
     return server;
@@ -113,26 +114,26 @@ public class DoxyClient {
     };
   }
   
-  private Supplier<Consumer<TcpChannel>> connectHandler() {
+  private Supplier<Consumer<TcpExchange>> connectHandler() {
     return ()->c->{
-      DoxyChannel dc = DoxyChannel.of(env, channelID(c), c);
-      TcpChannel con = HttpClient.open(httpGroup, httpSetup)
-          .connect(env.configuration().getRemoteHost())
-          .channel();
-      env.channels().put(dc.uid(), dc);
-      connections.put(dc.uid(), con);
-      c.closeFuture().onComplete(d->{
-        env.channels().remove(dc.uid());
-        TcpChannel ch = getConnection(dc.uid());
-        connections.remove(dc.uid());
-        HttpRequest req = HttpRequest.of(
-            HttpVersion.HTTP_1_1, 
-            HttpMethod.GET, 
-            String.format(URI_RELEASE, dc.uid())
-        );
-        req.headers().set(HttpHeaderNames.AUTHORIZATION, String.format(AUTH_FORMAT, jwt));
-        ch.events().write(req).close().execute();
-      }).execute();
+      //DoxyChannel dc = DoxyChannel.of(env, channelID(c), c);
+      //TcpChannel con = HttpClient.open(httpGroup, httpSetup)
+          //.connect(env.configuration().getRemoteHost())
+          //.channel();
+      //env.channels().put(dc.uid(), dc);
+      //connections.put(dc.uid(), con);
+      //c.closeFuture().onComplete(d->{
+        //env.channels().remove(dc.uid());
+        //TcpChannel ch = getConnection(dc.uid());
+        //connections.remove(dc.uid());
+        //HttpRequest req = HttpRequest.of(
+            //HttpVersion.HTTP_1_1, 
+            //HttpMethod.GET, 
+            //String.format(URI_RELEASE, dc.uid())
+        //);
+        //req.headers().set(HttpHeaderNames.AUTHORIZATION, String.format(AUTH_FORMAT, jwt));
+        //ch.events().write(req).close().execute();
+      //}).execute();
     };
   }
   

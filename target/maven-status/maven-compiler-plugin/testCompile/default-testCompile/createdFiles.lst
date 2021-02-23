@@ -1,6 +1,6 @@
 net/jun0rr/doxy/test/TestApp.class
 net/jun0rr/doxy/test/TestConditional.class
-net/jun0rr/doxy/test/TestHttpConnectionReuse.class
+net/jun0rr/doxy/test/TestTcpProxy.class
 net/jun0rr/doxy/test/TestTcpServer.class
 net/jun0rr/doxy/test/TestHttpClient.class
 net/jun0rr/doxy/test/TestNettyPerformanceClient.class
@@ -11,6 +11,7 @@ net/jun0rr/doxy/test/TestDoxyConfigBuilder.class
 net/jun0rr/doxy/test/TestNettyPerformanceServer.class
 net/jun0rr/doxy/test/TestTcpPerformanceClient.class
 net/jun0rr/doxy/test/TestHttpServer.class
+net/jun0rr/doxy/test/TestResourceLoader.class
 net/jun0rr/doxy/test/TestUriRequestParam.class
 net/jun0rr/doxy/test/TestGenericType.class
 net/jun0rr/doxy/test/TestTcpClient.class

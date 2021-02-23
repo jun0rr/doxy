@@ -30,12 +30,8 @@ public class TcpWriterHandler extends ChannelOutboundHandlerAdapter {
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     //log.info("message={}, promise={}", msg, cp);
     try {
-      System.out.println("[-TcpWriterHandler.write-] Promise=" + cp);
       Object out = (msg instanceof TcpExchange) ? ((TcpExchange)msg).message() : msg;
-      GenericFutureListener fl = f->{
-        System.out.println("[--TcpWriterHandler.write--] Write Future completed! Promise=" + cp);
-      };
-      ctx.writeAndFlush(out, cp).addListener(fl);
+      ctx.writeAndFlush(out, cp);
     }
     catch(Exception e) {
       this.exceptionCaught(ctx, e);

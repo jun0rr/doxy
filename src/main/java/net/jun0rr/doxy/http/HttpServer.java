@@ -35,10 +35,9 @@ public class HttpServer extends AbstractBootstrapChannel {
     return new HttpServer(boot, setup);
   }
   
-  public EventChain bind(Host host) {
+  public EventContext bind(Host host) {
     ChannelFuture cf = setupServerBootstrap().bind(host.toSocketAddr());
-    this.nettyChannel = cf.channel();
-    context.future(cf);
+    this.initChannel(cf.channel(), cf);
     return events();
   }
   

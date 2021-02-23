@@ -128,7 +128,7 @@ public class ContextEventChain implements EventChain {
   }
   
   @Override
-  public Event context() {
+  public Event event() {
     return econtext;
   }
 

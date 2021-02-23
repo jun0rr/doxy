@@ -20,7 +20,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 import net.jun0rr.doxy.http.handler.HttpClientWriterHandler;
-import net.jun0rr.doxy.http.handler.HttpWriteOnConnectHandler;
 
 
 /**
@@ -47,7 +46,6 @@ public class HttpClientHandlerSetup extends AbstractChannelHandlerSetup<HttpHand
     ls.add(()->new HttpClientWriterHandler());
     ls.add(()->new HttpObjectAggregator(1024*1024));
     connectHandlers().stream().map(cfn).forEach(ls::add);
-    ls.add(()->new HttpWriteOnConnectHandler(tch));
     inputHandlers().stream().map(ifn).forEach(ls::add);
     return new AddingLastChannelInitializer(sslHandlerFactory(), ls);
   }

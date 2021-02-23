@@ -78,9 +78,7 @@ public class TestHttpServer2 {
           StringBuilder req = x.<StringBuilder>getAttr("reqstr").get();
           if(x.request().message() != null && x.request().<ByteBuf>message().isReadable()) {
             String msg = x.request().<ByteBuf>message().toString(StandardCharsets.UTF_8);
-            req.append("  message: ")
-                .append(msg)
-                .append("\n");
+            req.append("  message: ").append(msg).append("\n");
             System.out.println(req.toString());
             return x.withRequest(x.request().withMessage(msg)).forward();
           }
@@ -96,7 +94,6 @@ public class TestHttpServer2 {
         .bind(Host.of("0.0.0.0:4321"))
         .onComplete(c->System.out.println("[SERVER] listening on: " + c.channel().localHost()))
         .executeSync()
-        .context()
         .channel();
   }
   
@@ -115,8 +112,11 @@ public class TestHttpServer2 {
           }
           System.out.println(res);
           count.countDown();
-          x.channel().events().close().onComplete(c->x.bootstrapChannel().events().shutdown().execute()).execute();
-          //x.channel().events().shutdown().execute();
+          x.channel().events()
+              .close()
+              .onComplete(c->
+                  x.bootstrapChannel().events().shutdown().execute())
+              .execute();
           return x.empty();
         });
     HttpRequest req = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
@@ -126,7 +126,6 @@ public class TestHttpServer2 {
         .connect(Host.of("localhost:4321"))
         .write(req)
         .execute()
-        .context()
         .channel();
   }
   
@@ -155,7 +154,6 @@ public class TestHttpServer2 {
         .connect(Host.of("localhost:4321"))
         .write(req)
         .execute()
-        .context()
         .channel();
   }
   

@@ -38,10 +38,9 @@ public class TcpServer extends AbstractBootstrapChannel {
     return new TcpServer(boot, setup);
   }
   
-  public EventChain bind(Host host) {
+  public EventContext bind(Host host) {
     ChannelFuture cf = setupServerBootstrap().bind(host.toSocketAddr());
-    this.initChannel(cf.channel());
-    this.context.future(cf);
+    this.initChannel(cf.channel(), cf);
     return events();
   }
   
@@ -50,8 +49,8 @@ public class TcpServer extends AbstractBootstrapChannel {
   }
   
   @Override
-  public EventChain events() {
-    return new TcpServerEventChain(super.events());
+  public EventContext events() {
+    return new TcpServerEventContext(super.events());
   }
   
 }

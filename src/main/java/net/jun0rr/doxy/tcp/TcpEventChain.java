@@ -139,7 +139,7 @@ public class TcpEventChain implements EventChain {
   }
 
   @Override
-  public Event context() {
+  public Event event() {
     return context;
   }
   

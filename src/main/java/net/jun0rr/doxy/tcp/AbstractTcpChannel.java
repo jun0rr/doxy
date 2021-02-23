@@ -6,8 +6,8 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.Future;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Objects;
@@ -27,18 +27,19 @@ public class AbstractTcpChannel implements TcpChannel {
   
   protected SocketAddress remote;
   
-  protected final Event context;
+  protected final LazyFinal<EventContext> context;
   
   protected final LazyFinal<Channel> nettyChannel;
   
   public AbstractTcpChannel(EventLoopGroup group) {
     this.group = Objects.requireNonNull(group, "Bad null EventLoopGroup");
-    this.context = new TcpEvent(this);
+    this.context = new LazyFinal();
     this.nettyChannel = new LazyFinal();
   }
   
-  protected void initChannel(Channel c) {
+  protected void initChannel(Channel c, Future f) {
     this.nettyChannel.init(c);
+    this.context.init(new TcpEventContext(new TcpEvent(this, f)));
   }
   
   /**
@@ -70,40 +71,32 @@ public class AbstractTcpChannel implements TcpChannel {
   }
   
   @Override
-  public EventChain events() {
+  public EventContext events() {
     failOnChannelEmpty();
-    return new TcpEventChain(context);
+    return context.get();
   }
   
   @Override
-  public EventChain closeFuture() {
+  public EventContext closeFuture() {
     failOnChannelEmpty();
-    context.future(nettyChannel.get().closeFuture());
-    return new TcpEventChain(context);
+    return new TcpEventContext(new TcpEvent(
+        context.get().channel(), 
+        nettyChannel.get().closeFuture())
+    );
   }
   
-  @Override
-  public void close() throws Exception {
-    events().close().execute();
-  }
-
   @Override
   public Host localHost() {
     failOnChannelEmpty();
-    InetSocketAddress addr = (InetSocketAddress) ((ChannelFuture)context.future()).channel().localAddress();
+    InetSocketAddress addr = (InetSocketAddress) nettyChannel().localAddress();
     return Host.of(addr.getHostString(), addr.getPort());
   }
 
   @Override
   public Host remoteHost() {
     failOnChannelEmpty();
-    InetSocketAddress addr = (InetSocketAddress) ((ChannelFuture)context.future()).channel().remoteAddress();
+    InetSocketAddress addr = (InetSocketAddress) nettyChannel().remoteAddress();
     return Host.of(addr.getHostString(), addr.getPort());
   }
 
-  @Override
-  public Event context() {
-    return context;
-  }
-  
 }

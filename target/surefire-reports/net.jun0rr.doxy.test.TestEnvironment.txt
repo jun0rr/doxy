@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 Test set: net.jun0rr.doxy.test.TestEnvironment
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0 s <<< FAILURE! - in net.jun0rr.doxy.test.TestEnvironment
+Tests run: 2, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.003 s <<< FAILURE! - in net.jun0rr.doxy.test.TestEnvironment
 method  Time elapsed: 0 s  <<< ERROR!
 java.lang.reflect.InaccessibleObjectException: Unable to make field private static final java.util.HashMap java.lang.ProcessEnvironment.theEnvironment accessible: module java.base does not "opens java.lang" to module doxy
 	at doxy@1.0-SNAPSHOT/net.jun0rr.doxy.test.TestEnvironment.method(TestEnvironment.java:30)

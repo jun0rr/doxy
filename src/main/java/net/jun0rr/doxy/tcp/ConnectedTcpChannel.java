@@ -7,10 +7,7 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-import io.netty.channel.EventLoopGroup;
 import java.util.Objects;
-import java.util.Optional;
-import net.jun0rr.doxy.cfg.Host;
 
 
 /**
@@ -21,8 +18,6 @@ public class ConnectedTcpChannel extends AbstractTcpChannel {
   
   private final ChannelHandlerContext context;
   
-  private final Event econtext;
-  
   protected final ChannelPromise promise;
   
   public ConnectedTcpChannel(ChannelHandlerContext ctx, ChannelPromise prms) {
@@ -30,39 +25,20 @@ public class ConnectedTcpChannel extends AbstractTcpChannel {
         .channel().eventLoop().parent());
     this.context = ctx;
     this.promise = prms;
-    this.econtext = new TcpEvent(this, (prms != null) ? prms : ctx.newSucceededFuture());
-    this.initChannel(ctx.channel());
+    this.initChannel(ctx.channel(), (prms != null) ? prms : ctx.newSucceededFuture());
   }
   
   public ConnectedTcpChannel(ChannelHandlerContext ctx) {
     this(ctx, null);
   }
   
-  public ConnectedTcpChannel withPromise(ChannelPromise prms) {
-    return new ConnectedTcpChannel(context, prms);
+  public ChannelHandlerContext channelContext() {
+    return context;
   }
   
-  @Override
-  public EventChain events() {
-    return new ContextEventChain(econtext, context, promise);
-  }
+  //@Override
+  //public EventContext events() {
+    //return new ConnectedTcpEventContext(this);
+  //}
   
-  /**
-   * Return the main group.
-   * @return Main EventLoopGroup.
-   */
-  @Override
-  public EventLoopGroup group() {
-    return group;
-  }
-  
-  @Override
-  public Host remoteHost() {
-    return Host.of(context.channel().remoteAddress());
-  }
-  
-  public Optional<ChannelPromise> promise() {
-    return Optional.ofNullable(promise);
-  }
-
 }

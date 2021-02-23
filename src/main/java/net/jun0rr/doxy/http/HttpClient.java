@@ -35,11 +35,10 @@ public class HttpClient extends AbstractBootstrapChannel {
     return new HttpClient(boot, setup);
   }
   
-  public EventChain connect(Host host) {
+  public EventContext connect(Host host) {
     failOnChannelInitialized();
     ChannelFuture cf = setupBootstrap().connect(host.toSocketAddr());
-    this.nettyChannel = cf.channel();
-    context.future(cf);
+    this.initChannel(cf.channel(), cf);
     return events();
   }
   

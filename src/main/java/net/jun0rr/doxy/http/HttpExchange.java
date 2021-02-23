@@ -79,16 +79,16 @@ public interface HttpExchange extends TcpExchange {
   
   
   
-  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
-    return new HttpExchangeImpl(channel, connected, ctx, req, res);
+  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, HttpRequest req, HttpResponse res) {
+    return new HttpExchangeImpl(channel, connected, req, res);
   }
   
-  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req) {
-    return new HttpExchangeImpl(channel, connected, ctx, req);
+  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, HttpRequest req) {
+    return new HttpExchangeImpl(channel, connected, req);
   }
   
-  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx) {
-    return  new HttpExchangeImpl(channel, connected, ctx);
+  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected) {
+    return  new HttpExchangeImpl(channel, connected);
   }
   
   
@@ -101,22 +101,22 @@ public interface HttpExchange extends TcpExchange {
     
     private final HttpResponse response;
     
-    public HttpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
-      super(boot, connected, ctx, new ConcurrentHashMap<>(), req);
+    public HttpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, HttpRequest req, HttpResponse res) {
+      super(boot, connected, new ConcurrentHashMap<>(), req);
       this.request = Objects.requireNonNull(req, "Bad null HttpRequest");
       this.response = Objects.requireNonNull(res, "Bad null HttpResponse");
       CURRENT_EXCHANGE.set(this);
     }
     
-    public HttpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req) {
-      super(boot, connected, ctx, new ConcurrentHashMap<>(), req);
+    public HttpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, HttpRequest req) {
+      super(boot, connected, new ConcurrentHashMap<>(), req);
       this.request = Objects.requireNonNull(req, "Bad null HttpRequest");
       this.response = HttpResponse.of(HttpResponseStatus.OK);
       CURRENT_EXCHANGE.set(this);
     }
     
-    public HttpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, ChannelHandlerContext ctx) {
-      super(boot, connected, ctx, new ConcurrentHashMap<>(), HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/"));
+    public HttpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected) {
+      super(boot, connected, new ConcurrentHashMap<>(), HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/"));
       this.request = this.message();
       this.response = HttpResponse.of(HttpResponseStatus.OK);
       CURRENT_EXCHANGE.set(this);
@@ -135,13 +135,13 @@ public interface HttpExchange extends TcpExchange {
     @Override
     public HttpExchange withRequest(HttpRequest req) {
       request.dispose();
-      return new HttpExchangeImpl(boot, connected, context, req, response);
+      return new HttpExchangeImpl(boot, connected, req, response);
     }
     
     @Override
     public HttpExchange withResponse(HttpResponse res) {
       response.dispose();
-      return new HttpExchangeImpl(boot, connected, context, request, res);
+      return new HttpExchangeImpl(boot, connected, request, res);
     }
     
     @Override
@@ -186,7 +186,7 @@ public interface HttpExchange extends TcpExchange {
           .elseOf(FullHttpRequest.class, o->withRequest(HttpRequest.of(o)))
           .elseOf(HttpResponse.class, this::withResponse)
           .elseOf(FullHttpResponse.class, o->withResponse(HttpResponse.of(o)))
-          .elseThen(o->new HttpExchangeImpl(boot, connected, context, request, responseWith(o)))
+          .elseThen(o->new HttpExchangeImpl(boot, connected, request, responseWith(o)))
           .apply(msg).get();
     }
     

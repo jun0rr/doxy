@@ -74,6 +74,25 @@ public class HttpServerHandlerSetup extends AbstractChannelHandlerSetup<HttpHand
     return headers;
   }
   
+  @Override
+  public HttpServerHandlerSetup enableSSL(SSLHandlerFactory ssl) {
+    super.enableSSL(ssl);
+    return this;
+  }
+  
+  @Override
+  public HttpServerHandlerSetup addConnectHandler(Supplier<Consumer<TcpExchange>> sup) {
+    super.addConnectHandler(sup);
+    return this;
+  }
+  
+  @Override
+  public HttpServerHandlerSetup addInputHandler(Supplier<HttpHandler> sup) {
+    super.addInputHandler(sup);
+    return this;
+  }
+  
+  @Override
   public HttpServerHandlerSetup addOutputHandler(Supplier<HttpHandler> sup) {
     super.addOutputHandler(sup);
     return this;

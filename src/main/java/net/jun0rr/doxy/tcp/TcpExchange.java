@@ -20,8 +20,6 @@ import net.jun0rr.doxy.common.MessageContainer;
  */
 public interface TcpExchange extends MessageContainer {
   
-  public ChannelHandlerContext context();
-  
   public Map<String,Object> attributes();
   
   public TcpExchange setAttr(String key, Object val);
@@ -64,8 +62,12 @@ public interface TcpExchange extends MessageContainer {
   
   
   
-  public static TcpExchange of(TcpChannel boot, ConnectedTcpChannel channel, ChannelHandlerContext ctx, Object msg) {
-    return new TcpExchangeImpl(boot, channel, ctx, new TreeMap<>(), msg);
+  public static TcpExchange of(TcpChannel boot, ConnectedTcpChannel channel, Object msg) {
+    return new TcpExchangeImpl(boot, channel, new TreeMap<>(), msg);
+  }
+  
+  public static TcpExchange of(TcpChannel boot, ConnectedTcpChannel channel) {
+    return new TcpExchangeImpl(boot, channel, new TreeMap<>());
   }
   
   
@@ -78,23 +80,19 @@ public interface TcpExchange extends MessageContainer {
     
     protected final ConnectedTcpChannel connected;
     
-    protected final ChannelHandlerContext context;
-    
     protected final Map<String,Object> attributes;
     
     protected final Object message;
     
-    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
+    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, Map<String,Object> attrs, Object msg) {
       this.boot = boot;
       this.connected = connected;
-      this.context = ctx;
       this.attributes = attrs;
       this.message = msg;
     }
     
-    @Override
-    public ChannelHandlerContext context() {
-      return context;
+    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, Map<String,Object> attrs) {
+      this(boot, connected, attrs, null);
     }
     
     @Override
@@ -136,13 +134,7 @@ public interface TcpExchange extends MessageContainer {
         ReferenceCounted r = (ReferenceCounted) message;
         if(r.refCnt() > 0) r.release(r.refCnt());
       }
-      return new TcpExchangeImpl(boot, connected, context, attributes, msg);
-    }
-    
-    protected ChannelFuture sendFuture() {
-      return connected.promise().isPresent() 
-          ? context.write(this, connected.promise().get()) 
-          : context.writeAndFlush(this);
+      return new TcpExchangeImpl(boot, connected, attributes, msg);
     }
     
     @Override

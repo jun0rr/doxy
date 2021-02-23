@@ -43,26 +43,18 @@ public class HttpOutboundHandler extends ChannelOutboundHandlerAdapter {
   
   private HttpExchange exchange(ChannelHandlerContext ctx, Object msg, ChannelPromise pms) {
     ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx, pms);
-    System.out.println("[HttpOutboundHandler.exchange] message=" + msg.getClass());
     HttpExchange ex;
     if(msg instanceof HttpExchange) {
       ex = (HttpExchange) msg;
-      ex = HttpExchange.of(
-          boot, cnc, ctx, 
-          ex.request(), 
-          ex.response()
-      );
     }
     else if(msg instanceof HttpRequest) {
-      ex = HttpExchange.of(
-          boot, cnc, ctx, 
+      ex = HttpExchange.of(boot, cnc, 
           (HttpRequest) msg, 
           HttpResponse.of(HttpResponseStatus.OK)
       );
     }
     else if(msg instanceof FullHttpRequest) {
-      ex = HttpExchange.of(
-          boot, cnc, ctx, 
+      ex = HttpExchange.of(boot, cnc, 
           HttpRequest.of((FullHttpRequest)msg), 
           HttpResponse.of(HttpResponseStatus.OK)
       );
@@ -83,7 +75,6 @@ public class HttpOutboundHandler extends ChannelOutboundHandlerAdapter {
   
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
-    System.out.println("[HttpOutboundHandler.write] message=" + msg.getClass());
     try {
       handler.apply(exchange(ctx, msg, cp)).ifPresent(x->ctx.writeAndFlush(x, cp));
     }
