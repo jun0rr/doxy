@@ -30,11 +30,18 @@ public class DefaultConfigSource implements ConfigSource {
         .publicKeyPath(DEFAULT_PUBLICKEY_PATH)
         .serverName(DEFAULT_SERVER_NAME)
         .threadPoolSize(DEFAULT_THREAD_POOL_SIZE)
-        .serverTimeout(DEFAULT_SERVER_TIMEOUT)
+        .timeout(DEFAULT_TIMEOUT)
+        .quiet(DEFAULT_LOG_QUIET)
         .userAgent(DEFAULT_USER_AGENT);
   }
   
+  @Override
+  public int weight() {
+    return WEIGHT;
+  }
+
   
+  public static final int WEIGHT = 0;
   public static final String LOCALHOST = "localhost";
   public static final String DEFAULT_SERVER_NAME = "Doxy-0.1-SNAPSHOT";
   public static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0";
@@ -47,11 +54,12 @@ public class DefaultConfigSource implements ConfigSource {
   public static final Path DEFAULT_PRIVATEKEY_PATH = Paths.get(System.getProperty("user.dir").concat("/").concat(DEFAULT_PRIVATEKEY_NAME));
   public static final Path DEFAULT_PUBLICKEY_PATH = Paths.get(System.getProperty("user.dir").concat("/").concat(DEFAULT_PUBLICKEY_NAME));
   public static final boolean DEFAULT_DIRECT_BUFFER = false;
+  public static final boolean DEFAULT_LOG_QUIET = false;
   public static final Host DEFAULT_CLIENT_HOST = Host.of(LOCALHOST, 3333);
   public static final Host DEFAULT_SERVER_HOST = Host.of(LOCALHOST, 443);
   public static final Host DEFAULT_REMOTE_HOST = Host.of(LOCALHOST, 6060);
   public static final int DEFAULT_BUFFER_SIZE = 8*1024;
-  public static final long DEFAULT_SERVER_TIMEOUT = 8000;
+  public static final long DEFAULT_TIMEOUT = 8000;
   public static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
   
 }

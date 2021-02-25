@@ -43,6 +43,8 @@ public class DoxyConfigBuilder {
   
   private final boolean directBuffer;
   
+  private final boolean quiet;
+  
   private final String serverName;
   
   private final String userAgent;
@@ -62,6 +64,7 @@ public class DoxyConfigBuilder {
     this.userAgent = null;
     this.bufferSize = 0;
     this.directBuffer = false;
+    this.quiet = false;
     this.kspath = null;
     this.pkpath = null;
     this.pubpath = null;
@@ -71,7 +74,7 @@ public class DoxyConfigBuilder {
   }
 
 
-  public DoxyConfigBuilder(Host host, Host server, Host remote, Host proxy, String proxyUser, char[] proxyPass, Path privateKey, Path publicKey, Path keystore, char[] keystorePass, String serverName, String userAgent, String cryptAlg, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
+  public DoxyConfigBuilder(Host host, Host server, Host remote, Host proxy, String proxyUser, char[] proxyPass, Path privateKey, Path publicKey, Path keystore, char[] keystorePass, String serverName, String userAgent, String cryptAlg, int threadPoolSize, int bufferSize, boolean directBuffer, boolean quiet, long timeout) {
     this.host = host;
     this.server = server;
     this.remote = remote;
@@ -89,91 +92,96 @@ public class DoxyConfigBuilder {
     this.kspass = keystorePass;
     this.cryptAlg = cryptAlg;
     this.timeout = timeout;
+    this.quiet = quiet;
   }
   
   
   public DoxyConfigBuilder clientHost(String hostname, int port) {
-    return new DoxyConfigBuilder(Host.of(hostname, port), server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(Host.of(hostname, port), server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder clientHost(Host host) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder serverHost(String hostname, int port) {
-    return new DoxyConfigBuilder(host, Host.of(hostname, port), remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, Host.of(hostname, port), remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder serverHost(Host server) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder remoteHost(String hostname, int port) {
-    return new DoxyConfigBuilder(host, server, Host.of(hostname, port), proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, Host.of(hostname, port), proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder remoteHost(Host remote) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder proxyHost(String hostname, int port) {
-    return new DoxyConfigBuilder(host, server, remote, Host.of(hostname, port), proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, Host.of(hostname, port), proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder proxyHost(Host proxy) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder threadPoolSize(int threadPoolSize) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
-  public DoxyConfigBuilder serverTimeout(long timeout) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+  public DoxyConfigBuilder timeout(long timeout) {
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder bufferSize(int bufferSize) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder directBuffer(boolean directBuffer) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder proxyUser(String proxyUser) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder proxyPassword(char[] proxyPass) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder serverName(String serverName) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder userAgent(String userAgent) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder privateKeyPath(Path pkpath) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder publicKeyPath(Path pubpath) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder keystorePath(Path kspath) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder keystorePassword(char[] kspass) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public DoxyConfigBuilder cryptAlgorithm(String cryptAlg) {
-    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
+  }
+  
+  public DoxyConfigBuilder quiet(boolean quiet) {
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   public Host getClientHost() {
@@ -212,6 +220,10 @@ public class DoxyConfigBuilder {
     return directBuffer;
   }
   
+  public boolean isQuietEnabled() {
+    return quiet;
+  }
+  
   public Path getPrivateKeyPath() {
     return pkpath;
   }
@@ -232,7 +244,7 @@ public class DoxyConfigBuilder {
     return serverName;
   }
   
-  public long getServerTimeout() {
+  public long getTimeout() {
     return timeout;
   }
   
@@ -266,6 +278,7 @@ public class DoxyConfigBuilder {
         threadPoolSize, 
         bufferSize, 
         directBuffer,
+        quiet,
         timeout
     );
   }

@@ -12,7 +12,7 @@ import net.jun0rr.doxy.common.opt.ParsedOption;
 
 /**
  *
- * @author Juno
+ * @author Juno - juno.rr@gmail.com
  */
 public interface OptionRule {
   

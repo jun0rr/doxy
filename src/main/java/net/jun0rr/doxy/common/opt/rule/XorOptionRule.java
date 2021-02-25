@@ -15,8 +15,10 @@ import net.jun0rr.doxy.common.opt.ParsedOption;
 
 
 /**
- *
- * @author Juno
+ * This rule block options to appear together in options list.
+ * If NOT mandatory, this rule will be applied only if at least one 
+ * option is present, otherwise will be allways applied. 
+ * @author Juno - juno.rr@gmail.com
  */
 public class XorOptionRule implements OptionRule {
   
@@ -24,6 +26,12 @@ public class XorOptionRule implements OptionRule {
   
   private final boolean mandatory;
   
+  /**
+   * Create a XorOptionRule. All options informed must NOT be present together in option list.
+   * @param mandatory Setting to true means this rule will be allways applied, demanding 
+   * at least one of the options must allways be present and the others not.
+   * @param options Options that must NOT be present together
+   */
   public XorOptionRule(boolean mandatory, Option... options) {
     this(mandatory, List.of(Objects.requireNonNull(options)));
   }

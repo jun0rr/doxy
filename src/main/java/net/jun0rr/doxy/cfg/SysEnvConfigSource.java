@@ -43,12 +43,19 @@ public class SysEnvConfigSource implements ConfigSource {
         .remoteHost(prop.getAsHost(ENV_REMOTE_HOST))
         .serverHost(prop.getAsHost(ENV_SERVER_HOST))
         .serverName(prop.getProperty(ENV_SERVER_NAME))
-        .serverTimeout(prop.getAsLong(ENV_SERVER_TIMEOUT))
+        .quiet(prop.getAsBoolean(ENV_LOG_QUIET))
+        .timeout(prop.getAsLong(ENV_SERVER_TIMEOUT))
         .threadPoolSize(prop.getAsInt(ENV_THREAD_POOL_SIZE))
         .userAgent(prop.getProperty(ENV_USERAGENT));
   }
   
+  @Override
+  public int weight() {
+    return WEIGHT;
+  }
+
   
+  public static final int WEIGHT = 2;
   public static final String ENV_CLIENT_HOST = "DOXY_CLIENT_HOST";
   public static final String ENV_USERAGENT = "DOXY_USERAGENT";
   public static final String ENV_SERVER_NAME = "DOXY_SERVER_NAME";
@@ -65,6 +72,7 @@ public class SysEnvConfigSource implements ConfigSource {
   public static final String ENV_CRYPT_ALGORITHM = "DOXY_CRYPT_ALGORITHM";
   public static final String ENV_BUFFER_SIZE = "DOXY_BUFFER_SIZE";
   public static final String ENV_BUFFER_DIRECT = "DOXY_BUFFER_DIRECT";
+  public static final String ENV_LOG_QUIET = "DOXY_LOG_QUIET";
   public static final String ENV_THREAD_POOL_SIZE = "DOXY_THREAD_POOL_SIZE";
   
 }

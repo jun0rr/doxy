@@ -27,19 +27,19 @@ public class AbstractTcpChannel implements TcpChannel {
   
   protected SocketAddress remote;
   
-  protected final LazyFinal<EventContext> context;
+  protected final Event event;
   
   protected final LazyFinal<Channel> nettyChannel;
   
   public AbstractTcpChannel(EventLoopGroup group) {
     this.group = Objects.requireNonNull(group, "Bad null EventLoopGroup");
-    this.context = new LazyFinal();
+    this.event = new TcpEvent(this);
     this.nettyChannel = new LazyFinal();
   }
   
   protected void initChannel(Channel c, Future f) {
     this.nettyChannel.init(c);
-    this.context.init(new TcpEventContext(new TcpEvent(this, f)));
+    event.future(f);
   }
   
   /**
@@ -71,18 +71,20 @@ public class AbstractTcpChannel implements TcpChannel {
   }
   
   @Override
-  public EventContext events() {
-    failOnChannelEmpty();
-    return context.get();
+  public Event event() {
+    return event;
   }
   
   @Override
-  public EventContext closeFuture() {
+  public EventChain eventChain() {
     failOnChannelEmpty();
-    return new TcpEventContext(new TcpEvent(
-        context.get().channel(), 
-        nettyChannel.get().closeFuture())
-    );
+    return new TcpEventChain(event);
+  }
+  
+  @Override
+  public EventChain closeFuture() {
+    failOnChannelEmpty();
+    return new TcpEventChain(new TcpEvent(this, nettyChannel.get().closeFuture()));
   }
   
   @Override

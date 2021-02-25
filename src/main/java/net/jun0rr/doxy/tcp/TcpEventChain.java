@@ -5,12 +5,11 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import io.netty.channel.ChannelPromise;
 import io.netty.util.concurrent.GenericFutureListener;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import us.pserver.tools.Unchecked;
@@ -22,21 +21,23 @@ import us.pserver.tools.Unchecked;
  */
 public class TcpEventChain implements EventChain {
   
-  protected final Event context;
+  private final Event event;
   
-  protected final List<TcpEventListener> events;
-  
-  protected final ChannelPromise promise;
+  protected final Queue<TcpEventListener> events;
   
   
-  public TcpEventChain(Event ctx, ChannelPromise cp) {
-    this.context = Objects.requireNonNull(ctx, "Bad null EventContext");
-    this.events = new LinkedList<>();
-    this.promise = cp;
+  public TcpEventChain(Event e) {
+    this.event = Objects.requireNonNull(e, "Bad null Event");
+    this.events = new ConcurrentLinkedQueue();
   }
   
-  public TcpEventChain(Event ctx) {
-    this(ctx, null);
+  public TcpEventChain(TcpChannel ch) {
+    this(new TcpEvent(ch));
+  }
+  
+  @Override
+  public TcpChannel channel() {
+    return event.channel();
   }
   
   @Override
@@ -47,7 +48,7 @@ public class TcpEventChain implements EventChain {
 
   @Override
   public EventChain onComplete(Consumer<Event> success, Consumer<Throwable> error) {
-    if(success != null && error != null) events.add(c->{
+    if(success != null && error != null) events.offer(c->{
       if(c.future().isDone()) {
         if(c.future().isSuccess()) success.accept(c);
         else error.accept(c.future().cause());
@@ -64,7 +65,7 @@ public class TcpEventChain implements EventChain {
   @Override
   public EventChain executeSync() {
     CountDownLatch count = new CountDownLatch(1);
-    events.add(c->{
+    events.offer(c->{
       count.countDown();
       return c.future();
     });
@@ -76,7 +77,7 @@ public class TcpEventChain implements EventChain {
 
   @Override
   public EventChain close() {
-    events.add(c->c.channel().nettyChannel().close());
+    events.offer(e->e.channel().nettyChannel().close());
     return this;
   }
 
@@ -84,63 +85,51 @@ public class TcpEventChain implements EventChain {
   @Override
   public EventChain shutdown() {
     close();
-    events.add(c->c.channel().group().shutdownGracefully());
+    events.offer(e->e.channel().group().shutdownGracefully());
     return this;
   }
 
 
   @Override
   public EventChain awaitShutdown() {
-    context.channel().group().terminationFuture().syncUninterruptibly();
+    event.channel().group().terminationFuture().syncUninterruptibly();
     return this;
   }
   
-  private GenericFutureListener listener(Iterator<TcpEventListener> it) {
-    return f -> {
-      if(it.hasNext()) {
-        context.future(it.next().apply(context));
-        execute(it);
+  private GenericFutureListener listener() {
+    return f->{
+      TcpEventListener el = events.poll();
+      if(el != null) {
+        TcpEvent evt = new TcpEvent(event.channel(), f);
+        event.future(Unchecked.call(()->
+            el.apply(evt)).addListener(listener())
+        );
       }
     };
   }
   
-  private void execute(Iterator<TcpEventListener> it) {
-    if(context.channel().group().isShutdown() || context.channel().group().isTerminated()) {
-      while(it.hasNext()) {
-        context.future(Unchecked.call(()->it.next().apply(context)));
+  @Override
+  public EventChain execute() {
+    if(event.channel().group().isShutdown() || event.channel().group().isTerminated()) {
+      TcpEventListener el;
+      while((el = events.poll()) != null) {
+        try {
+          event.future(el.apply(event));
+        } catch (Exception ex) {
+          Unchecked.unchecked(ex);
+        }
       }
     }
     else {
-      context.future().addListener(listener(it));
+      event.future().addListener(listener());
     }
+    return this;
   }
   
   @Override
   public EventChain write(Object msg) {
-    events.add(c->{
-      Event e = c;
-      ChannelPromise cp = e.channel().nettyChannel().newPromise();
-      System.out.println("[--TcpEventChain.write--] Promise=" + cp);
-      GenericFutureListener fl = f->{
-        System.out.println("[--TcpEventChain.write--] Promise Executed! " + f);
-        context.future(f);
-        execute();
-      };
-      cp.addListener(fl);
-      return c.channel().nettyChannel().writeAndFlush(msg).addListener(fl);
-    });
+    events.offer(e->e.channel().nettyChannel().write(msg));
     return this;
   }
 
-  @Override
-  public EventChain execute() {
-    execute(events.iterator());
-    return this;
-  }
-
-  @Override
-  public Event event() {
-    return context;
-  }
-  
 }

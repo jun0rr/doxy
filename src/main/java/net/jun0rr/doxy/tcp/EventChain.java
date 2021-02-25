@@ -30,6 +30,6 @@ public interface EventChain {
   
   public EventChain write(Object obj);
   
-  public Event event();
+  public TcpChannel channel();
   
 }

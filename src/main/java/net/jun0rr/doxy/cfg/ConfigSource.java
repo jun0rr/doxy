@@ -10,9 +10,15 @@ package net.jun0rr.doxy.cfg;
  *
  * @author juno
  */
-@FunctionalInterface
-public interface ConfigSource {
+public interface ConfigSource extends Comparable<ConfigSource> {
   
   public DoxyConfigBuilder load() throws Exception;
+  
+  public int weight();
+  
+  @Override
+  public default int compareTo(ConfigSource c) {
+    return Integer.compare(weight(), c.weight());
+  }
   
 }

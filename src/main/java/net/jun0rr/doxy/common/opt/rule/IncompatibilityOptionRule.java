@@ -14,8 +14,8 @@ import net.jun0rr.doxy.common.opt.ParsedOption;
 
 
 /**
- *
- * @author Juno
+ * Define an incompatible option with others.
+ * @author Juno - juno.rr@gmail.com
  */
 public class IncompatibilityOptionRule implements OptionRule {
   

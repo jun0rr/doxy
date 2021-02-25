@@ -10,12 +10,13 @@ import java.util.Properties;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_BUFFER_SIZE;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_CLIENT_HOST;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_CRYPT_ALGORITHM;
+import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_LOG_QUIET;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_REMOTE_HOST;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_SERVER_HOST;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_SERVER_NAME;
-import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_SERVER_TIMEOUT;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_USER_AGENT;
 import net.jun0rr.doxy.common.TypedProperties;
+import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_TIMEOUT;
 
 
 /**
@@ -26,8 +27,11 @@ public class PropertiesConfigSource implements ConfigSource {
   
   private final TypedProperties properties;
   
-  public PropertiesConfigSource(Properties props) {
+  private final int weight;
+  
+  public PropertiesConfigSource(Properties props, int weight) {
     this.properties = new TypedProperties(Objects.requireNonNull(props, "Bad null Properties"));
+    this.weight = weight;
   }
   
   @Override
@@ -48,10 +52,16 @@ public class PropertiesConfigSource implements ConfigSource {
         .serverHost(properties.getAsHost(PROP_SERVER_HOST, DEFAULT_SERVER_HOST))
         .serverName(properties.getProperty(PROP_SERVER_NAME, DEFAULT_SERVER_NAME))
         .threadPoolSize(properties.getAsInt(PROP_THREADPOOL_SIZE))
-        .serverTimeout(properties.getAsLong(PROP_SERVER_TIMEOUT, DEFAULT_SERVER_TIMEOUT))
+        .timeout(properties.getAsLong(PROP_SERVER_TIMEOUT, DEFAULT_TIMEOUT))
+        .quiet(properties.getAsBoolean(PROP_LOG_QUIET, DEFAULT_LOG_QUIET))
         .userAgent(properties.getProperty(PROP_USERAGENT, DEFAULT_USER_AGENT));
   }
   
+  @Override
+  public int weight() {
+    return weight;
+  }
+
   
   public static final String PROP_CLIENT_HOST = "client.host";
   public static final String PROP_USERAGENT = "useragent";
@@ -69,6 +79,7 @@ public class PropertiesConfigSource implements ConfigSource {
   public static final String PROP_SECURITY_CRYPT_ALGORITHM = "security.crypt.algorithm";
   public static final String PROP_BUFFER_SIZE = "buffer.size";
   public static final String PROP_BUFFER_DIRECT = "buffer.direct";
+  public static final String PROP_LOG_QUIET = "log.quiet";
   public static final String PROP_THREADPOOL_SIZE = "threadpool.size";
   
 }

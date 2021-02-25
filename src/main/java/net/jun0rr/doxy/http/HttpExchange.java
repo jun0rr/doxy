@@ -39,6 +39,10 @@ public interface HttpExchange extends TcpExchange {
   
   public HttpResponse response();
   
+  public HttpExchange withRequestBody(Object obj);
+    
+  public HttpExchange withResponseBody(Object obj);
+    
   public HttpExchange withRequest(HttpRequest req);
   
   public HttpExchange withResponse(HttpResponse res);
@@ -164,20 +168,28 @@ public interface HttpExchange extends TcpExchange {
     
     @Override
     public Optional<HttpExchange> send() {
-      connected.events().write(this).execute();
+      connected.eventChain().write(this).execute();
       return empty();
     }
     
     @Override
     public Optional<HttpExchange> sendAndClose() {
       response().headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-      connected.events().write(this).close().execute();
+      connected.eventChain().write(this).close().execute();
       return empty();
     }
     
     @Override
     public HttpRequest message() {
       return request;
+    }
+    
+    public HttpExchange withRequestBody(Object obj) {
+      return HttpExchange.of(boot, connected, request.withMessage(obj), response);
+    }
+    
+    public HttpExchange withResponseBody(Object obj) {
+      return HttpExchange.of(boot, connected, request, response.withMessage(obj));
     }
     
     @Override

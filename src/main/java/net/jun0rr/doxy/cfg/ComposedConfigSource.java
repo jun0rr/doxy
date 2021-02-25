@@ -6,6 +6,9 @@
 package net.jun0rr.doxy.cfg;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -24,61 +27,73 @@ public class ComposedConfigSource implements ConfigSource {
   @Override
   public DoxyConfigBuilder load() throws Exception {
     DoxyConfigBuilder bld = DoxyConfigBuilder.newBuilder();
-    for(ConfigSource src : srcs) {
+    List<ConfigSource> ordered = new LinkedList(srcs);
+    Collections.sort(ordered);
+    for(ConfigSource src : ordered) {
       DoxyConfigBuilder b = src.load();
-      if(bld.getBufferSize() <= 0 && b.getBufferSize() > 0) {
+      if(b.getBufferSize() > 0) {
         bld = bld.bufferSize(b.getBufferSize());
       }
-      if(bld.getClientHost() == null && b.getClientHost() != null) {
+      if(b.getClientHost() != null) {
         bld = bld.clientHost(b.getClientHost());
       }
-      if(bld.getCryptAlgorithm() == null && b.getCryptAlgorithm() != null) {
+      if(b.getCryptAlgorithm() != null) {
         bld = bld.cryptAlgorithm(b.getCryptAlgorithm());
       }
-      if(bld.getKeystorePassword() == null && b.getKeystorePassword() != null) {
+      if(b.getKeystorePassword() != null) {
         bld = bld.keystorePassword(b.getKeystorePassword());
       }
-      if(bld.getKeystorePath() == null && b.getKeystorePath() != null) {
+      if(b.getKeystorePath() != null) {
         bld = bld.keystorePath(b.getKeystorePath());
       }
-      if(bld.getPrivateKeyPath() == null && b.getPrivateKeyPath() != null) {
+      if(b.getPrivateKeyPath() != null) {
         bld = bld.privateKeyPath(b.getPrivateKeyPath());
       }
-      if(bld.getProxyHost() == null && b.getProxyHost() != null) {
+      if(b.getProxyHost() != null) {
         bld = bld.proxyHost(b.getProxyHost());
       }
-      if(bld.getProxyPassword() == null && b.getProxyPassword() != null) {
+      if(b.getProxyPassword() != null) {
         bld = bld.proxyPassword(b.getProxyPassword());
       }
-      if(bld.getProxyUser() == null && b.getProxyUser() != null) {
+      if(b.getProxyUser() != null) {
         bld = bld.proxyUser(b.getProxyUser());
       }
-      if(bld.getPublicKeyPath() == null && b.getPublicKeyPath() != null) {
+      if(b.getPublicKeyPath() != null) {
         bld = bld.publicKeyPath(b.getPublicKeyPath());
       }
-      if(bld.getRemoteHost() == null && b.getRemoteHost() != null) {
+      if(b.getRemoteHost() != null) {
         bld = bld.remoteHost(b.getRemoteHost());
       }
-      if(bld.getServerHost() == null && b.getServerHost() != null) {
+      if(b.getServerHost() != null) {
         bld = bld.serverHost(b.getServerHost());
       }
-      if(bld.getServerName() == null && b.getServerName() != null) {
+      if(b.getServerName() != null) {
         bld = bld.serverName(b.getServerName());
       }
-      if(bld.getThreadPoolSize() <= 0 && b.getThreadPoolSize() > 0) {
+      if(b.getThreadPoolSize() > 0) {
         bld = bld.threadPoolSize(b.getThreadPoolSize());
       }
-      if(bld.getUserAgent() == null && b.getUserAgent() != null) {
+      if(b.getUserAgent() != null) {
         bld = bld.userAgent(b.getUserAgent());
       }
-      if(bld.getServerTimeout() <= 0 && b.getServerTimeout() > 0) {
-        bld = bld.serverTimeout(b.getServerTimeout());
+      if(b.getTimeout() > 0) {
+        bld = bld.timeout(b.getTimeout());
       }
       if(!bld.isDirectBufferEnabled() && b.isDirectBufferEnabled()) {
         bld = bld.directBuffer(b.isDirectBufferEnabled());
       }
+      if(!bld.isQuietEnabled() && b.isQuietEnabled()) {
+        bld = bld.quiet(b.isQuietEnabled());
+      }
     }
     return bld;
+  }
+  
+  @Override
+  public int weight() {
+    return srcs.stream()
+        .mapToInt(ConfigSource::weight)
+        .max().orElse(1);
   }
   
 }

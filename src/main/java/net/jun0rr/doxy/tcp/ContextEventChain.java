@@ -8,11 +8,10 @@ package net.jun0rr.doxy.tcp;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.concurrent.GenericFutureListener;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import us.pserver.tools.Unchecked;
@@ -26,28 +25,33 @@ public class ContextEventChain implements EventChain {
   
   private final ChannelHandlerContext context;
   
-  private final Event econtext;
+  private final Event event;
   
-  protected final List<TcpEventListener> events;
+  protected final Queue<TcpEventListener> events;
   
   protected final ChannelPromise promise;
   
-  public ContextEventChain(Event ecx, ChannelHandlerContext ctx, ChannelPromise cp) {
-    this.econtext = Objects.requireNonNull(ecx, "Bad null EventContext");
+  public ContextEventChain(Event evt, ChannelHandlerContext ctx, ChannelPromise cp) {
+    this.event = Objects.requireNonNull(evt, "Bad null EventContext");
     this.context = Objects.requireNonNull(ctx, "Bad null ChannelHandlerContext");
-    this.events = new LinkedList<>();
+    this.events = new ConcurrentLinkedQueue();
     this.promise = cp;
   }
   
-  public ContextEventChain(Event ectx, ChannelHandlerContext ctx) {
-    this(ectx, ctx, null);
+  public ContextEventChain(Event evt, ChannelHandlerContext ctx) {
+    this(evt, ctx, null);
+  }
+  
+  @Override
+  public TcpChannel channel() {
+    return event.channel();
   }
   
   @Override
   public EventChain write(Object msg) {
-    events.add((promise != null) 
-        ? c->context.writeAndFlush(msg, promise) 
-        : c->context.writeAndFlush(msg)
+    events.offer((promise != null) 
+        ? e->context.writeAndFlush(msg, promise) 
+        : e->context.writeAndFlush(msg)
     );
     return this;
   }
@@ -59,38 +63,32 @@ public class ContextEventChain implements EventChain {
   
   @Override
   public EventChain onComplete(Consumer<Event> success, Consumer<Throwable> error) {
-    if(success != null && error != null) events.add(c->{
-      if(c.future().isDone()) {
-        if(c.future().isSuccess()) success.accept(c);
-        else error.accept(c.future().cause());
+    if(success != null && error != null) events.offer(e->{
+      if(e.future().isDone()) {
+        if(e.future().isSuccess()) success.accept(e);
+        else error.accept(e.future().cause());
       }
-      return c.future();
+      return e.future();
     });
     return this;
   }
   
   @Override
   public EventChain close() {
-    events.add(c->(context.channel().isOpen()) ? context.channel().close() : c.future());
+    events.offer(e->(context.channel().isOpen()) ? context.channel().close() : e.future());
     return this;
   }
   
   @Override
   public EventChain shutdown() {
     close();
-    events.add(c->c.channel().group().shutdownGracefully());
+    events.offer(e->e.channel().group().shutdownGracefully());
     return this;
   }
   
   @Override
   public EventChain awaitShutdown() {
-    econtext.channel().group().terminationFuture().syncUninterruptibly();
-    return this;
-  }
-  
-  @Override
-  public EventChain execute() {
-    execute(Collections.unmodifiableList(events).iterator());
+    event.channel().group().terminationFuture().syncUninterruptibly();
     return this;
   }
   
@@ -106,30 +104,28 @@ public class ContextEventChain implements EventChain {
     return this;
   }
 
-  private void execute(Iterator<TcpEventListener> it) {
-    if(!it.hasNext()) return;
-    if(context.executor().isShutdown() || context.executor().isTerminated()) {
-      while(it.hasNext()) {
-        econtext.future(Unchecked.call(()->it.next().apply(econtext)));
+  @Override
+  public EventChain execute() {
+    if(event.channel().group().isShutdown() || event.channel().group().isTerminated()) {
+      TcpEventListener el;
+      while((el = events.poll()) != null) {
+        try {
+          event.future(el.apply(event));
+        } catch (Exception ex) {
+          Unchecked.unchecked(ex);
+        }
       }
     }
     else {
-      econtext.future().addListener(listener(it));
+      event.future().addListener(listener());
     }
+    return this;
   }
   
-  private GenericFutureListener listener(Iterator<TcpEventListener> it) {
-    return f -> {
-      if(it.hasNext()) {
-        econtext.future(it.next().apply(econtext));
-        execute(it);
-      }
-    };
+  private GenericFutureListener listener() {
+    return f->Optional.ofNullable(events.poll())
+        .map(l->Unchecked.call(()->l.apply(event)))
+        .ifPresent(event::future);
   }
   
-  @Override
-  public Event event() {
-    return econtext;
-  }
-
 }

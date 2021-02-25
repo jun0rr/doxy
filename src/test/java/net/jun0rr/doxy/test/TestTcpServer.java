@@ -78,7 +78,7 @@ public class TestTcpServer {
             return x.forward();
           })
           .addInputHandler(()-> x->{
-            x.channel().events()
+            x.channel().eventChain()
                 .shutdown()
                 .onComplete(c->System.out.println("[CLIENT] Shutdown completed!"))
                 .execute();
@@ -100,7 +100,7 @@ public class TestTcpServer {
           .onComplete(c->System.out.println("[CLIENT] Message sent!"))
           .execute()
           .awaitShutdown();
-      server.events()
+      server.eventChain()
           .shutdown()
           .onComplete(c->System.out.println("[SERVER] Shutdown completed!"))
           .execute()
@@ -125,9 +125,9 @@ public class TestTcpServer {
           .addConnectHandler(()-> x->{
             System.out.println("[SERVER] Client connected: " + x.channel().remoteHost());
             ByteBuf msg = Unpooled.copiedBuffer(message, StandardCharsets.UTF_8);
-            x.channel().events().write(msg)
+            x.channel().eventChain().write(msg)
                 .onComplete(c->System.out.println("[SERVER] Message writed!"))
-                .onComplete(c->x.bootstrapChannel().events().shutdown()
+                .onComplete(c->x.bootstrapChannel().eventChain().shutdown()
                     .onComplete(cc->System.out.println("[SERVER] Shutdown complete!"))
                     .execute())
                 .execute();
@@ -148,7 +148,7 @@ public class TestTcpServer {
             return x.forward();
           })
           .addInputHandler(()-> x->{
-            x.bootstrapChannel().events()
+            x.bootstrapChannel().eventChain()
                 .shutdown()
                 .onComplete(c->System.out.println("[CLIENT] Shutdown completed!"))
                 .execute();
@@ -158,7 +158,7 @@ public class TestTcpServer {
           .connect(host)
           .execute()
           .awaitShutdown();
-      server.events().awaitShutdown();
+      server.eventChain().awaitShutdown();
     }
     catch(Exception e) {
       e.printStackTrace();

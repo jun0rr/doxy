@@ -112,10 +112,10 @@ public class TestHttpServer2 {
           }
           System.out.println(res);
           count.countDown();
-          x.channel().events()
+          x.channel().eventChain()
               .close()
               .onComplete(c->
-                  x.bootstrapChannel().events().shutdown().execute())
+                  x.bootstrapChannel().eventChain().shutdown().execute())
               .execute();
           return x.empty();
         });
@@ -144,7 +144,7 @@ public class TestHttpServer2 {
           }
           System.out.println(res);
           count.countDown();
-          x.channel().events().shutdown().execute();
+          x.channel().eventChain().shutdown().execute();
           return x.empty();
         });
     HttpRequest req = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.POST, "/echo", "Hello World Netty (post /echo)");
@@ -164,9 +164,9 @@ public class TestHttpServer2 {
       TcpChannel getroot = getRoot();
       TcpChannel postecho = postEcho();
       count.await();
-      server.events().shutdown().onComplete(g->System.out.println("[SERVER] Shutdown complete")).executeSync();
-      getroot.events().awaitShutdown().onComplete(g->System.out.println("[GET /] Shutdown complete")).executeSync();
-      postecho.events().awaitShutdown().onComplete(g->System.out.println("[POST /echo] Shutdown complete")).executeSync();
+      server.eventChain().shutdown().onComplete(g->System.out.println("[SERVER] Shutdown complete")).executeSync();
+      getroot.eventChain().awaitShutdown().onComplete(g->System.out.println("[GET /] Shutdown complete")).executeSync();
+      postecho.eventChain().awaitShutdown().onComplete(g->System.out.println("[POST /echo] Shutdown complete")).executeSync();
     }
     catch(Exception e) {
       e.printStackTrace();

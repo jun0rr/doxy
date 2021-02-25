@@ -38,7 +38,7 @@ public class TestHttpServer {
             System.out.println("[SERVER] HttpHandler (R2) >>> " + x.response().message());
             x.response().headers().forEach(e->System.out.printf("   - %s: %s%n", e.getKey(), e.getValue()));
             x.channel().closeFuture()
-                .onComplete(c->x.bootstrapChannel().events().shutdown().execute())
+                .onComplete(c->x.bootstrapChannel().eventChain().shutdown().execute())
                 .execute();
             return x.forward();
           })
@@ -91,7 +91,7 @@ public class TestHttpServer {
       server.bind(Host.of("0.0.0.0:4321"))
           .onComplete(c->System.out.println("[SERVER] listening on: " + c.channel().localHost()))
           .executeSync();
-      server.events().awaitShutdown();
+      server.eventChain().awaitShutdown();
     }
     catch(Exception e) {
       e.printStackTrace();

@@ -32,10 +32,10 @@ import net.jun0rr.doxy.cfg.Host;
  */
 public class TestPacketCoder {
 
-  private static final PrivateKey pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(Paths.get("d:/java/doxy-pk.der")));
-  private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("d:/java/doxy-pub.der")));
-  //private static final PrivateKey pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(Paths.get("/home/juno/java/doxy-pk.der")));
-  //private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("/home/juno/java/doxy-pub.der")));
+  //private static final PrivateKey pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(Paths.get("d:/java/doxy-pk.der")));
+  //private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("d:/java/doxy-pub.der")));
+  private static final PrivateKey pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(Paths.get("/home/juno/java/doxy-pk.der")));
+  private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("/home/juno/java/doxy-pub.der")));
   private static final PacketEncoder enc = new PacketEncoder(DefaultConfigSource.DEFAULT_CRYPT_ALGORITHM, pub);
   private static final PacketDecoder dec = new PacketDecoder(DefaultConfigSource.DEFAULT_CRYPT_ALGORITHM, pk);
   

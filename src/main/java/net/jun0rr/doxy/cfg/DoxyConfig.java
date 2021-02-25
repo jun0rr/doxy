@@ -32,7 +32,9 @@ public interface DoxyConfig {
   
   public boolean isDirectBufferEnabled();
   
-  public long getServerTimeout();
+  public boolean isQuietEnabled();
+  
+  public long getTimeout();
   
   
   
@@ -40,8 +42,8 @@ public interface DoxyConfig {
     return DoxyConfigBuilder.newBuilder();
   }
   
-  public static DoxyConfig of(Host host, Host server, Host remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
-    return new DoxyConfigImpl(host, server, remote, proxy, security, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, timeout);
+  public static DoxyConfig of(Host host, Host server, Host remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, boolean quiet, long timeout) {
+    return new DoxyConfigImpl(host, server, remote, proxy, security, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, quiet, timeout);
   }
   
   
@@ -67,13 +69,15 @@ public interface DoxyConfig {
     private final long timeout;
 
     private final boolean directBuffer;
-
+    
+    private final boolean quiet;
+    
     private final String serverName;
 
     private final String userAgent;
 
 
-    public DoxyConfigImpl(Host host, Host server, Host remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
+    public DoxyConfigImpl(Host host, Host server, Host remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, boolean quiet, long timeout) {
       this.host = host;
       this.server = server;
       this.remote = remote;
@@ -85,6 +89,7 @@ public interface DoxyConfig {
       this.serverName = serverName;
       this.userAgent = userAgent;
       this.timeout = timeout;
+      this.quiet = quiet;
     }
 
     @Override
@@ -136,9 +141,14 @@ public interface DoxyConfig {
     public boolean isDirectBufferEnabled() {
       return directBuffer;
     }
-
+    
     @Override
-    public long getServerTimeout() {
+    public boolean isQuietEnabled() {
+      return directBuffer;
+    }
+    
+    @Override
+    public long getTimeout() {
       return timeout;
     }
 
@@ -156,6 +166,7 @@ public interface DoxyConfig {
           + "  - threadPoolSize=" + threadPoolSize + "\n"
           + "  - bufferSize=" + bufferSize + "\n"
           + "  - directBuffer=" + directBuffer + "\n"
+          + "  - quiet=" + quiet + "\n"
           + '}';
     }
 

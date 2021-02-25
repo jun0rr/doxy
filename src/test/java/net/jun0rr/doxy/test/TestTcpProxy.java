@@ -13,6 +13,8 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.http.HttpRoute;
 import net.jun0rr.doxy.http.HttpServer;
@@ -24,6 +26,7 @@ import net.jun0rr.doxy.tcp.TcpChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.TcpClient;
 import net.jun0rr.doxy.tcp.TcpServer;
 import org.junit.jupiter.api.Test;
+import us.pserver.tools.FileSizeFormatter;
 
 /**
  *
@@ -79,11 +82,11 @@ public class TestTcpProxy {
             ).sendAndClose())
         .addRouteHandler(HttpRoute.of("/shutdown.*"), ()-> x->{
           System.out.println("[HTTP] Shutting Down...");
-          x.channel().events()
+          x.channel().eventChain()
               .write(x.response().withMessage(x.getAttr("resp").get().toString()))
               .close()
               .onComplete(e->{
-                x.bootstrapChannel().events()
+                x.bootstrapChannel().eventChain()
                   .shutdown()
                   .onComplete(f->System.out.println("[HTTP] Shutdown Completed!"))
                   .execute();
@@ -107,28 +110,41 @@ public class TestTcpProxy {
   
   public TcpChannel proxy() {
     Map<Host,TcpChannel> conns = new ConcurrentHashMap();
+    AtomicLong bytesIn = new AtomicLong(0L);
+    AtomicLong bytesOut = new AtomicLong(0L);
+    long startup = System.currentTimeMillis();
+    FileSizeFormatter fmt = new FileSizeFormatter();
+    AtomicReference<String> strIn = new AtomicReference(fmt.format(bytesIn.get()));
+    AtomicReference<String> strOut = new AtomicReference(fmt.format(bytesOut.get()));
     ChannelHandlerSetup setup = TcpChannelHandlerSetup.newSetup()
         .addConnectHandler(()->x->{
           TcpChannel client = x.channel();
           System.out.println("[PROXY] Client Connected " + client.remoteHost());
           ChannelHandlerSetup targetSetup = TcpChannelHandlerSetup.newSetup()
               .addInputHandler(()->y->{
-                System.out.println("[TARGET] Message Received " + y.message());
-                client.events().write(y.message()).execute();
+                String sout = fmt.format(bytesOut.addAndGet(y.<ByteBuf>message().readableBytes()));
+                if(!sout.equals(strOut.get())) {
+                  strOut.set(sout);
+                  long time = (System.currentTimeMillis() - startup) / 1000;
+                  String sbps = fmt.format((bytesIn.get() + bytesOut.get()) / time);
+                  System.out.printf("[PROXY] <%s> {Input: %s, Output: %s, Traffic: %s/sec}%n", client.remoteHost(), strIn.get(), sout, sbps);
+                }
+                client.eventChain().write(y.message()).execute();
                 return y.empty();
               });
           conns.put(client.remoteHost(), TcpClient.open(targetSetup)
-              .connect(Host.of("localhost", 4443)).channel()
+              .connect(Host.of("localhost", 6060)).channel()
           );
           x.channel().closeFuture().onComplete(e->
               conns.remove(client.remoteHost())
-                  .events().shutdown().execute()
+                  .eventChain().shutdown().execute()
           );
         })
         .addInputHandler(()->x->{
-          System.out.println("[PROXY] Client Message << " + x.channel().remoteHost());
+          String sin = fmt.format(bytesIn.addAndGet(x.<ByteBuf>message().readableBytes()));
+          if(!sin.equals(strIn.get())) strIn.set(sin);
           conns.get(x.channel().remoteHost())
-              .events()
+              .eventChain()
               .write(x.message())
               .execute();
           return x.empty();
@@ -144,11 +160,13 @@ public class TestTcpProxy {
   public void test() throws URISyntaxException {
     TcpChannel http = httpServer();
     TcpChannel proxy = proxy();
-    http.events().awaitShutdown();
-    proxy.events()
-        .shutdown()
-        .onComplete(e->System.out.println("[PROXY] Shutdown Completed!"))
-        .executeSync();
+    http.closeFuture()
+        .onComplete(e->proxy.eventChain()
+          .shutdown()
+          .onComplete(c->System.out.println("[PROXY] Shutdown Completed!"))
+          .execute()
+        ).execute()
+        .awaitShutdown();
   }
   
 }

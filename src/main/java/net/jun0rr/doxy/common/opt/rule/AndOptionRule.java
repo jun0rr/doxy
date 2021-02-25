@@ -15,8 +15,10 @@ import net.jun0rr.doxy.common.opt.ParsedOption;
 
 
 /**
- *
- * @author Juno
+ * Group options that must to be present together in option list.
+ * If NOT mandatory, this rule will be applied only if at least one 
+ * option is present, otherwise will be allways applied. 
+ * @author Juno - juno.rr@gmail.com
  */
 public class AndOptionRule implements OptionRule {
   
@@ -24,6 +26,12 @@ public class AndOptionRule implements OptionRule {
   
   private final boolean mandatory;
   
+  /**
+   * Create an AndOptionRule. All options informed must be present together in option list.
+   * @param mandatory Setting to true means this rule will be allways applied, demanding 
+   * all options must allways be present.
+   * @param options Options that must to be present together
+   */
   public AndOptionRule(boolean mandatory, Option... options) {
     this(mandatory, List.of(Objects.requireNonNull(options)));
   }

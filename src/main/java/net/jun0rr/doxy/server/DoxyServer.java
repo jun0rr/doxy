@@ -107,9 +107,9 @@ public class DoxyServer {
   
   private Supplier<HttpHandler> shutdown() {
     return ()->x->{
-      x.channel().events()
+      x.channel().eventChain()
           .shutdown()
-          .onComplete(c->x.bootstrapChannel().events().shutdown().execute())
+          .onComplete(c->x.bootstrapChannel().eventChain().shutdown().execute())
           .execute();
       return x.empty();
     };
@@ -130,7 +130,7 @@ public class DoxyServer {
       RequestParam par = RequestParam.fromUriPattern("/release/{channelId}", x.request().uri());
       DoxyChannel dc = env.channels().remove(par.get("channelId").toString());
       if(dc != null) {
-        dc.channel().events().close().execute();
+        dc.channel().eventChain().close().execute();
       }
       return x.sendAndClose();
     };

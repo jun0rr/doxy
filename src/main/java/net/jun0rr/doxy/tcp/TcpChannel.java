@@ -16,9 +16,11 @@ import net.jun0rr.doxy.cfg.Host;
  */
 public interface TcpChannel {
   
-  public EventContext events();
+  public Event event();
   
-  public EventContext closeFuture();
+  public EventChain eventChain();
+  
+  public EventChain closeFuture();
   
   public EventLoopGroup group();
   

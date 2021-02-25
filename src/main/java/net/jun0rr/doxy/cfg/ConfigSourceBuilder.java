@@ -26,7 +26,7 @@ public class ConfigSourceBuilder {
   }
   
   public ConfigSource fromProperties(Properties prop) {
-    return new PropertiesConfigSource(prop);
+    return new PropertiesConfigSource(prop, 1);
   }
   
   public ConfigSource fromFile(Path path, Charset cs) {
@@ -63,6 +63,11 @@ public class ConfigSourceBuilder {
   
   public ConfigSource fromComposedSource() {
     return new ComposedConfigSource(srcs);
+  }
+  
+  public ConfigSourceBuilder composeWith(ConfigSource src) {
+    srcs.add(src);
+    return this;
   }
   
   public ConfigSourceBuilder composeWithProperties(Properties prop) {

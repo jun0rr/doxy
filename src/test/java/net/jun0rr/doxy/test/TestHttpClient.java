@@ -43,7 +43,7 @@ public class TestHttpClient {
             res.append("  message: ").append(msg.toString(StandardCharsets.UTF_8)).append("\n");
           }
           System.out.println(res);
-          x.channel().events()
+          x.channel().eventChain()
               .shutdown()
               .onComplete(c->System.out.println("[CLIENT] Shutdown complete!"))
               .execute();

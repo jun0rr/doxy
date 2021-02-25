@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.impl;
+package net.jun0rr.doxy.common;
 
 
 /**

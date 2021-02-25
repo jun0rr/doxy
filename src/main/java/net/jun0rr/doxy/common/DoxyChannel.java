@@ -5,11 +5,9 @@
  */
 package net.jun0rr.doxy.common;
 
-import io.netty.channel.Channel;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import net.jun0rr.doxy.tcp.TcpChannel;
-import us.pserver.tools.Unchecked;
 
 
 /**
@@ -85,13 +83,13 @@ public interface DoxyChannel extends AutoCloseable {
 
     @Override
     public void close() {
-      //Unchecked.call(()->channel.close());
-      //env.channels().remove(this);
+      channel.eventChain().close().executeSync();
+      env.channels().remove(this);
     }
 
     @Override
     public void writePacket(Packet p) {
-      channel.events().write(p.data()).execute();
+      channel.eventChain().write(p.data()).execute();
       //channel.write(decoder.decodePacket(p).data());
     }
 

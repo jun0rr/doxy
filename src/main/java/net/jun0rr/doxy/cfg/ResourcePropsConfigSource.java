@@ -18,6 +18,8 @@ import java.util.Properties;
  */
 public class ResourcePropsConfigSource implements ConfigSource {
   
+  public static final int WEIGHT = 1;
+  
   public static final String DEFAULT_PROPS_FILE_NAME = "doxy.properties";
   
   private final String filename;
@@ -43,7 +45,12 @@ public class ResourcePropsConfigSource implements ConfigSource {
     try (InputStreamReader rdr = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(filename), charset)) {
       props.load(rdr);
     }
-    return new PropertiesConfigSource(props).load();
+    return new PropertiesConfigSource(props, weight()).load();
   }
-  
+
+  @Override
+  public int weight() {
+    return WEIGHT;
+  }
+
 }

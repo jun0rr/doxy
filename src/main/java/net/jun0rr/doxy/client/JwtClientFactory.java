@@ -8,7 +8,7 @@ package net.jun0rr.doxy.client;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import net.jun0rr.doxy.common.DoxyEnvironment;
-import net.jun0rr.doxy.impl.DoxyClaims;
+import net.jun0rr.doxy.common.DoxyClaims;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.JsonWebEncryption;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -25,14 +25,12 @@ import org.jose4j.zip.CompressionAlgorithmIdentifiers;
  */
 public class JwtClientFactory {
   
-  private final DoxyEnvironment env;
-  
   private final JsonWebSignature jws;
   
   private final JsonWebEncryption jwe;
   
   public JwtClientFactory(DoxyEnvironment env) {
-    this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
+    Objects.requireNonNull(env, "Bad null DoxyEnvironment");
     this.jws = new JsonWebSignature();
     jws.setPayloadCharEncoding(StandardCharsets.UTF_8.name());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);

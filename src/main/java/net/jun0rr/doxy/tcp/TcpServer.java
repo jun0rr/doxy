@@ -34,14 +34,18 @@ public class TcpServer extends AbstractBootstrapChannel {
     return open(serverBootstrap(parent, child), setup);
   }
   
+  public static TcpServer open(ChannelHandlerSetup<TcpHandler> setup, int mainThreads, int childThreads) {
+    return open(serverBootstrap(new NioEventLoopGroup(mainThreads), new NioEventLoopGroup(childThreads)), setup);
+  }
+  
   public static TcpServer open(ServerBootstrap boot, ChannelHandlerSetup<TcpHandler> setup) {
     return new TcpServer(boot, setup);
   }
   
-  public EventContext bind(Host host) {
+  public EventChain bind(Host host) {
     ChannelFuture cf = setupServerBootstrap().bind(host.toSocketAddr());
     this.initChannel(cf.channel(), cf);
-    return events();
+    return eventChain();
   }
   
   public EventLoopGroup childGroup() {
@@ -49,8 +53,8 @@ public class TcpServer extends AbstractBootstrapChannel {
   }
   
   @Override
-  public EventContext events() {
-    return new TcpServerEventContext(super.events());
+  public EventChain eventChain() {
+    return new TcpServerEventChain(super.eventChain());
   }
   
 }

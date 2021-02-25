@@ -20,6 +20,8 @@ import java.util.Properties;
  */
 public class FilePropsConfigSource implements ConfigSource {
   
+  public static final int WEIGHT = 3;
+  
   private final Path path;
   
   private final Charset charset;
@@ -39,7 +41,12 @@ public class FilePropsConfigSource implements ConfigSource {
     try (BufferedReader rdr = Files.newBufferedReader(path, charset)) {
       props.load(rdr);
     }
-    return new PropertiesConfigSource(props).load();
+    return new PropertiesConfigSource(props, weight()).load();
   }
   
+  @Override
+  public int weight() {
+    return WEIGHT;
+  }
+
 }

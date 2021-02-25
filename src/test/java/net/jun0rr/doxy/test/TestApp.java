@@ -202,7 +202,7 @@ public class TestApp {
         .addOption(threads)
         .addOption(quiet)
         .addRule(new IncompatibilityOptionRule(client, server, keystore, keystorePass, serverName))
-        .addRule(new IncompatibilityOptionRule(server, client, remote, userAgent))
+        .addRule(new IncompatibilityOptionRule(server, client, userAgent))
         .addRule(new AndOptionRule( false, client, remote, target, pk))
         .addRule(new AndOptionRule( false, server, pub))
         //.addRule(new DependencyOptionRule(remote, client))
@@ -222,7 +222,7 @@ public class TestApp {
     System.out.println(app.displayHelp());
     //String args = "-c localhost:13001 -s 0.0.0.0:13000 -r localhost:6060";
     //String args = "-c localhost:13001 -r localhost:6060 -p localhost:40080 -pk d:/java/doxy-pk.pem";
-    String args = "-c localhost:13001 -r leitao.hopto.org:80 -p localhost:40080 -pk d:/java/doxy-pk.pem";
+    String args = "-c localhost:13001 -r leitao.hopto.org:80 -t localhost:6060 -p localhost:40080 -pk d:/java/doxy-pk.pem";
     //String args = "-s 0.0.0.0:13000 -r localhost:6060";
     //String args = "-c localhost:13001 -r localhost:6060 -p localhost:40080 -pp 32132155 -pk 'd:/java/doxy-pk.pem'";
     //String args = "--author";

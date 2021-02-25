@@ -139,13 +139,13 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> send() {
-      connected.events().write(message).execute();
+      connected.eventChain().write(message).execute();
       return empty();
     }
     
     @Override
     public Optional<? extends TcpExchange> sendAndClose() {
-      connected.events().write(message).close().execute();
+      connected.eventChain().write(message).close().execute();
       return empty();
     }
     

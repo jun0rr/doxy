@@ -14,8 +14,8 @@ import net.jun0rr.doxy.common.opt.ParsedOption;
 
 
 /**
- *
- * @author Juno
+ * Supress a rule evaluation error if one of the options in arguments is present.
+ * @author Juno - juno.rr@gmail.com
  */
 public class SupressErrorOptionRule implements OptionRule {
   

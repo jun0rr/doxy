@@ -14,8 +14,8 @@ import net.jun0rr.doxy.common.opt.ParsedOption;
 
 
 /**
- *
- * @author Juno
+ * Link an option with other dependencies.
+ * @author Juno - juno.rr@gmail.com
  */
 public class DependencyOptionRule implements OptionRule {
   
