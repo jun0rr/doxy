@@ -13,6 +13,8 @@ import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.http.HttpExceptionalResponse;
 import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
+import net.jun0rr.doxy.http.HttpRequest;
+import net.jun0rr.doxy.http.HttpResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -64,9 +66,10 @@ public class JwtAuthFilter implements HttpHandler {
 
   @Override
   public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
+    printRequest(he.request());
     if(!he.request().headers().contains(HttpHeaderNames.AUTHORIZATION)) {
       return he.withResponse(HttpExceptionalResponse.of(
-          HttpResponseStatus.BAD_REQUEST, 
+          HttpResponseStatus.UNAUTHORIZED, 
           new JwtAuthException("Authorization header missing"))
       ).sendAndClose();
     }
@@ -80,6 +83,20 @@ public class JwtAuthFilter implements HttpHandler {
       return he.withResponse(HttpExceptionalResponse.of(HttpResponseStatus.UNAUTHORIZED, e))
           .sendAndClose();
     }
+  }
+  
+  private void printRequest(HttpRequest req) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[").append(req.method()).append(" ").append(req.uri()).append("]\n");
+    req.headers().forEach(e->sb.append("   - ").append(e.getKey()).append(": ").append(e.getValue()).append("\n"));
+    System.out.println(sb);
+  }
+  
+  private void printResponse(HttpResponse res) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[").append(res.status()).append("]\n");
+    res.headers().forEach(e->sb.append("   - ").append(e.getKey()).append(": ").append(e.getValue()).append("\n"));
+    System.out.println(sb);
   }
   
 }

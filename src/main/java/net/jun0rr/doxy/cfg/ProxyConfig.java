@@ -49,7 +49,7 @@ public interface ProxyConfig {
     private char[] pass;
     
     public ProxyConfigImpl(Host host, String user, char[] pass) {
-      this.host = Objects.requireNonNull(host, "Bad null proxy host");
+      this.host = host;
       this.user = user;
       this.pass = pass;
     }

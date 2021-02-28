@@ -31,6 +31,10 @@ public class HttpServer extends AbstractBootstrapChannel {
     return open(serverBootstrap(parent, child), setup);
   }
   
+  public static HttpServer open(ChannelHandlerSetup<HttpHandler> setup, int mainThreads, int childThreads) {
+    return open(serverBootstrap(new NioEventLoopGroup(mainThreads), new NioEventLoopGroup(childThreads)), setup);
+  }
+  
   public static HttpServer open(ServerBootstrap boot, ChannelHandlerSetup<HttpHandler> setup) {
     return new HttpServer(boot, setup);
   }

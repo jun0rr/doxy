@@ -9,6 +9,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedList;
@@ -20,6 +23,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
+import net.jun0rr.doxy.http.HttpResponse;
 import us.pserver.tools.FileSizeFormatter;
 import us.pserver.tools.date.DateDiff;
 
@@ -50,19 +54,15 @@ public class DoxyStatsHandler implements HttpHandler {
     List<JsonObject> list = getHostList();
     long count = list.stream().mapToLong(o->o.get("requestCount").getAsLong()).sum();
     long bytes = list.stream().mapToLong(o->o.get("requestBytes").getAsLong()).sum();
-    server.addProperty("requestCount", count);
-    server.addProperty("requestBytes", bytes);
-    count = list.stream().mapToLong(o->o.get("responseCount").getAsLong()).sum();
-    bytes = list.stream().mapToLong(o->o.get("responseBytes").getAsLong()).sum();
-    server.addProperty("responseCount", count);
-    server.addProperty("responseBytes", bytes);
+    server.addProperty("totalRequestCount", count);
+    server.addProperty("totalRequestBytes", bytes);
     setStats(server);
     JsonArray hosts = new JsonArray();
     list.stream().map(this::setStats).forEach(hosts::add);
-    JsonObject json = new JsonObject();
-    json.add("server", server);
-    json.add("hosts", hosts);
-    return x.withMessage(gson.toJson(json)).sendAndClose();
+    server.add("hosts", hosts);
+    HttpResponse res = HttpResponse.of(HttpResponseStatus.OK, gson.toJson(server));
+    res.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+    return x.withResponse(res).sendAndClose();
   }
   
   private List<JsonObject> getHostList() {
@@ -92,11 +92,7 @@ public class DoxyStatsHandler implements HttpHandler {
     long bytes = obj.get("requestBytes").getAsLong();
     double count = obj.get("requestCount").getAsDouble();
     obj.addProperty("requestAvgSize", sf.format(Math.round(bytes / count)));
-    obj.addProperty("requestAvgTraffic", sf.format(Math.round(bytes / uptime)).concat("/s"));
-    bytes = obj.get("responseBytes").getAsLong();
-    count = obj.get("responseCount").getAsDouble();
-    obj.addProperty("responseAvgSize", sf.format(Math.round(bytes / count)));
-    obj.addProperty("responseAvgTraffic", sf.format(Math.round(bytes / uptime)).concat("/s"));
+    obj.addProperty("requestAvgTraffic", sf.format(Math.round(bytes / uptime)).concat("/sec"));
     return obj;
   }
   

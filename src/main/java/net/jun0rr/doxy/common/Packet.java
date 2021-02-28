@@ -141,7 +141,7 @@ public interface Packet {
           ? ByteBuffer.allocateDirect(encodeLength())
           : ByteBuffer.allocate(encodeLength());
       byte[] raw = remote.toSocketAddr().getAddress().getAddress();
-      System.out.printf("* Packet.toByteBuffer(): rawAddress=%s:%d%n", Arrays.toString(raw), remote.getPort());
+      //System.out.printf("* Packet.toByteBuffer(): rawAddress=%s:%d%n", Arrays.toString(raw), remote.getPort());
       buf.putInt(encodeLength())
           .putInt(orilen)
           .putLong(order)

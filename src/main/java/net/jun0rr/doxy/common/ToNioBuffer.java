@@ -7,6 +7,7 @@ package net.jun0rr.doxy.common;
 
 import io.netty.buffer.ByteBuf;
 import java.nio.ByteBuffer;
+import java.util.function.IntFunction;
 
 
 /**
@@ -16,10 +17,14 @@ import java.nio.ByteBuffer;
 public interface ToNioBuffer {
   
   public static ByteBuffer apply(ByteBuf buf) {
-    ByteBuffer nio = ByteBuffer.allocate(buf.readableBytes());
+    return apply(buf, ByteBuffer::allocate, true);
+  }
+  
+  public static ByteBuffer apply(ByteBuf buf, IntFunction<ByteBuffer> alloc, boolean release) {
+    ByteBuffer nio = alloc.apply(buf.readableBytes());
     buf.readBytes(nio);
     nio.flip();
-    buf.release();
+    if(buf.refCnt() > 0) buf.release(buf.refCnt());
     return nio;
   }
   

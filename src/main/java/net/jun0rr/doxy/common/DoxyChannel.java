@@ -5,6 +5,7 @@
  */
 package net.jun0rr.doxy.common;
 
+import io.netty.buffer.Unpooled;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import net.jun0rr.doxy.tcp.TcpChannel;
@@ -16,8 +17,6 @@ import net.jun0rr.doxy.tcp.TcpChannel;
  */
 public interface DoxyChannel extends AutoCloseable {
   
-  public DoxyEnvironment environment();
-  
   public String uid();
   
   public long nextOrder();
@@ -26,12 +25,12 @@ public interface DoxyChannel extends AutoCloseable {
   
   @Override public void close();
   
-  public void writePacket(Packet p);
+  public void writePacketData(Packet p);
   
   
   
-  public static DoxyChannel of(DoxyEnvironment env, String channelID, TcpChannel c) {
-    return new DoxyChannelImpl(env, channelID, c);
+  public static DoxyChannel of(String channelID, TcpChannel c) {
+    return new DoxyChannelImpl(channelID, c);
   }
   
   
@@ -40,30 +39,16 @@ public interface DoxyChannel extends AutoCloseable {
   
   public class DoxyChannelImpl implements DoxyChannel {
 
-    private final DoxyEnvironment env;
-
     private final String uid;
 
     private final AtomicLong order;
 
     private final TcpChannel channel;
 
-    private final PacketDecoder decoder;
-
-    public DoxyChannelImpl(DoxyEnvironment env, String uid, TcpChannel sc) {
-      this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
+    public DoxyChannelImpl(String uid, TcpChannel sc) {
       this.uid = Objects.requireNonNull(uid, "Bad null uid String");
       this.channel = Objects.requireNonNull(sc, "Bad null Channel");
       this.order = new AtomicLong(0L);
-      this.decoder = new PacketDecoder(
-          env.configuration().getSecurityConfig().getCryptAlgorithm(), 
-          env.getPrivateKey()
-      );
-    }
-
-    @Override
-    public DoxyEnvironment environment() {
-      return env;
     }
 
     @Override
@@ -83,13 +68,15 @@ public interface DoxyChannel extends AutoCloseable {
 
     @Override
     public void close() {
-      channel.eventChain().close().executeSync();
-      env.channels().remove(this);
+      channel.eventChain().close().execute();
     }
 
     @Override
-    public void writePacket(Packet p) {
-      channel.eventChain().write(p.data()).execute();
+    public void writePacketData(Packet p) {
+      channel.eventChain()
+          .write(Unpooled.wrappedBuffer(p.data()))
+          .onComplete(e->System.out.printf("[TCP] Packet writed: remote=%s, bytes=%d, channel=%s%n", e.channel().remoteHost(), p.originalLength(), p.channelID()))
+          .execute();
       //channel.write(decoder.decodePacket(p).data());
     }
 

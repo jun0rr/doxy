@@ -31,6 +31,10 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
   
   private final HttpHandler handler;
   
+  private HttpRequest request;
+  
+  private HttpResponse response;
+  
   public HttpInboundHandler(TcpChannel chn, HttpHandler hnd) {
     this.handler = Objects.requireNonNull(hnd, "Bad null HttpHandler");
     this.channel = Objects.requireNonNull(chn, "Bad null TcpChannel");

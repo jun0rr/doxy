@@ -90,6 +90,9 @@ public class AbstractTcpChannel implements TcpChannel {
   @Override
   public Host localHost() {
     failOnChannelEmpty();
+    //System.out.printf("[AbstractTcpChannel.localHost] nettyChannel=%s%n", nettyChannel());
+    //System.out.printf("[AbstractTcpChannel.localHost] nettyChannel=%s, localAddress=%s%n", nettyChannel(), nettyChannel().localAddress());
+    //System.out.printf("[AbstractTcpChannel.localHost] nettyChannel=%s, localAddress=%s, localAddress.class=%s%n", nettyChannel(), nettyChannel().localAddress(), nettyChannel().localAddress().getClass().getSimpleName());
     InetSocketAddress addr = (InetSocketAddress) nettyChannel().localAddress();
     return Host.of(addr.getHostString(), addr.getPort());
   }

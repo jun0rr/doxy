@@ -31,6 +31,9 @@ public class ComposedConfigSource implements ConfigSource {
     Collections.sort(ordered);
     for(ConfigSource src : ordered) {
       DoxyConfigBuilder b = src.load();
+      //System.out.printf("[ComposedConfigSource.load] class=%s, weight: %d, getPrivateKeyPath=%s%n", src.getClass().getSimpleName(), src.weight(), b.getPrivateKeyPath());
+      //System.out.printf("[ComposedConfigSource.load] class=%s, weight: %d, getCryptAlgorithm=%s%n", src.getClass().getSimpleName(), src.weight(), b.getCryptAlgorithm());
+      //System.out.printf("[ComposedConfigSource.load] class=%s, weight: %d, getProxyHost=%s%n", src.getClass().getSimpleName(), src.weight(), b.getProxyHost());
       if(b.getBufferSize() > 0) {
         bld = bld.bufferSize(b.getBufferSize());
       }

@@ -103,6 +103,7 @@ public class StringValue {
   public Object getAsObject() {
     return PARSER_LIST.stream()
         .filter(p->p.canParse(value))
+        .map(p->p.parse(value))
         .findFirst()
         .orElseThrow(()->new IllegalArgumentException(String.format("Unknown format! Cannot parse value <%s>", value)));
   }

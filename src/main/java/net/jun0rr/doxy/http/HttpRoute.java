@@ -30,7 +30,7 @@ public interface HttpRoute extends Routable {
   
   
   
-  public static HttpRoute of(String uri, HttpMethod... mts) {
+  public static HttpRoute any(String uri, HttpMethod... mts) {
     return new HttpRouteImpl(uri, mts);
   }
   
@@ -102,7 +102,7 @@ public interface HttpRoute extends Routable {
     
     @Override
     public boolean match(String uri, HttpMethod... mts) {
-      return match(HttpRoute.of(uri, mts));
+      return match(HttpRoute.any(uri, mts));
     }
     
     @Override

@@ -253,7 +253,7 @@ public class DoxyConfigBuilder {
   }
   
   public String getCryptAlgorithm() {
-    return userAgent;
+    return cryptAlg;
   }
   
   public ConfigSourceBuilder setupConfigSources() {

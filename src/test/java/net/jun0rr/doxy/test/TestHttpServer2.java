@@ -50,11 +50,11 @@ public class TestHttpServer2 {
           System.out.println("[SERVER] HttpHandler (R1) >>> " + x.response().message());
           return x.forward();
         })
-        .addRouteHandler(HttpRoute.of("/.*", HttpMethod.GET), ()->x->{
+        .addRouteHandler(HttpRoute.any("/.*", HttpMethod.GET), ()->x->{
           x.response().headers().add("x-routeA", "/.*");
           return x.sendAndClose();
         })
-        .addRouteHandler(HttpRoute.of("/echo.*", HttpMethod.POST), ()->x->{
+        .addRouteHandler(HttpRoute.any("/echo.*", HttpMethod.POST), ()->x->{
           x.response().headers().set(CONNECTION, CLOSE);
           x.response().headers().add("x-routeB", "/echo.*");
           return x.withResponse(x.response().withMessage(x.request().message())).sendAndClose();

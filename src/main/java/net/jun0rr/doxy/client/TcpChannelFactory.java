@@ -34,7 +34,7 @@ public class TcpChannelFactory implements ObjectFactory<TcpChannel> {
 
   @Override
   public boolean validate(TcpChannel t) {
-    return t.nettyChannel().isOpen() && t.nettyChannel().isActive();
+    return t.nettyChannel().isOpen();
   }
   
 }

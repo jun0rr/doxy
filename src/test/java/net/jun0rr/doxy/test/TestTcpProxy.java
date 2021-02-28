@@ -76,11 +76,11 @@ public class TestTcpProxy {
           x.setAttr("resp", sb);
           return x.forward();
         })
-        .addRouteHandler(HttpRoute.of("/.*"), ()-> x->
+        .addRouteHandler(HttpRoute.any("/.*"), ()-> x->
             x.withResponse(x.response().withMessage(
                 x.getAttr("resp").get().toString())
             ).sendAndClose())
-        .addRouteHandler(HttpRoute.of("/shutdown.*"), ()-> x->{
+        .addRouteHandler(HttpRoute.any("/shutdown.*"), ()-> x->{
           System.out.println("[HTTP] Shutting Down...");
           x.channel().eventChain()
               .write(x.response().withMessage(x.getAttr("resp").get().toString()))
