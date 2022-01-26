@@ -5,14 +5,16 @@
  */
 package net.jun0rr.doxy.http.handler;
 
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import net.jun0rr.doxy.http.HttpExchange;
-import net.jun0rr.doxy.http.HttpResponse;
 
 
 /**
@@ -25,7 +27,8 @@ public class HttpServerErrorHandler implements BiFunction<HttpExchange,Throwable
   
   @Override
   public Optional<HttpResponse> apply(HttpExchange x, Throwable t) {
-    HttpResponse res = HttpResponse.of(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    t.printStackTrace();
+    HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
     res.headers().set("x-error-type", t.getClass());
     if(t.getMessage() != null && !t.getMessage().isBlank()) {
       res.headers().set("x-error-message", t.getMessage());

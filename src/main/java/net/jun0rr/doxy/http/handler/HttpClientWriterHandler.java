@@ -10,13 +10,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import net.jun0rr.doxy.http.HttpExchange;
-import net.jun0rr.doxy.http.HttpRequest;
 
 
 /**
@@ -31,41 +30,25 @@ public class HttpClientWriterHandler extends ChannelOutboundHandlerAdapter {
     this.log = InternalLoggerFactory.getInstance(getClass());
   }
   
-  private HttpRequest request(Object msg) {
-    HttpRequest req;
-    if(msg instanceof HttpExchange) {
-      req = ((HttpExchange)msg).request();
-    }
-    else if(msg instanceof HttpRequest) {
-      req = (HttpRequest) msg;
-    }
-    else if(msg instanceof FullHttpRequest) {
-      req = HttpRequest.of((FullHttpRequest)msg);
-    }
-    else {
-      throw new IllegalStateException("Bad message type: " + msg.getClass().getName());
-    }
-    return req;
-  }
-  
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     //log.info("message={}, promise={}", msg, cp);
     try {
-      HttpRequest req = request(msg);
-      if(req.message() != null) {
-        ByteBuf buf;
-        if(req.message() instanceof CharSequence) {
-          buf = Unpooled.copiedBuffer(req.<CharSequence>message(), StandardCharsets.UTF_8);
-        }
-        else {
-          buf = req.message();
-        }
-        if(buf.readableBytes() > 0) {
-          req.headers().set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
-        }
+      Object out = msg;
+      if(out instanceof HttpExchange) {
+        HttpExchange x = (HttpExchange) out;
+        out = x.message() != null ? x.message() : x.request();
       }
-      ctx.writeAndFlush(req, cp);
+      if(out instanceof String) {
+        out = Unpooled.copiedBuffer((String)out, StandardCharsets.UTF_8);
+      }
+      //if(out instanceof ByteBuf) {
+        //out = new DefaultHttpContent((ByteBuf) out);
+      //}
+      System.out.printf("[%s.write] out.class=%s, out=%s%n", this, out.getClass().getSimpleName(), out);
+      ctx.writeAndFlush(out, cp).addListener(f->{
+        System.out.printf("[%s.write] ERROR=%s%n", this, Objects.toString(f.cause()));
+      });
     }
     catch(Exception e) {
       this.exceptionCaught(ctx, e);

@@ -6,8 +6,10 @@
 package net.jun0rr.doxy.test;
 
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import java.util.Optional;
 import net.jun0rr.doxy.common.Conditional;
@@ -15,7 +17,6 @@ import net.jun0rr.doxy.common.ConsumerConditional;
 import net.jun0rr.doxy.common.InstanceOf;
 import net.jun0rr.doxy.common.SupplierConditional;
 import net.jun0rr.doxy.common.VoidConditional;
-import net.jun0rr.doxy.http.HttpRequest;
 import org.junit.jupiter.api.Test;
 
 
@@ -28,7 +29,7 @@ public class TestConditional {
   public void conditional() {
     System.out.println("---- conditional ----");
     Object msg = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-    msg = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
+    msg = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
     msg = "/hello";
     //msg = null;
     Optional<HttpRequest> req = Conditional.of(o->o instanceof HttpRequest)
@@ -38,11 +39,11 @@ public class TestConditional {
         })
         .elseIf(o->o instanceof FullHttpRequest, o->{
           System.out.println("-> o instanceof FullHttpRequest");
-          return HttpRequest.of((FullHttpRequest)o);
+          return (HttpRequest)o;
         })
         .elseIf(o->o instanceof String, o->{
           System.out.println("-> o instanceof String");
-          return HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, (String)o);
+          return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, (String)o);
         })
         .elseThrow(o->new IllegalArgumentException("Bad object type: " + o))
         .apply(msg)
@@ -54,7 +55,7 @@ public class TestConditional {
   public void ifInstance() {
     System.out.println("---- ifInstance ----");
     Object msg = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-    msg = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
+    msg = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
     msg = "/hello";
     //msg = null;
     Optional<HttpRequest> req = InstanceOf.of(HttpRequest.class, o->{
@@ -63,11 +64,11 @@ public class TestConditional {
         })
         .elseOf(FullHttpRequest.class, o->{
           System.out.println("-> o instanceof FullHttpRequest");
-          return HttpRequest.of(o);
+          return o;
         })
         .elseOf(String.class, o->{
           System.out.println("-> o instanceof String");
-          return HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, o);
+          return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, o);
         })
         .elseThrow(o->new IllegalArgumentException("Bad object type: " + o))
         .apply(msg)
@@ -96,7 +97,7 @@ public class TestConditional {
   public void supplierConditional() {
     System.out.println("---- supplierConditional ----");
     //Object msg = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-    Object msg = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
+    Object msg = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
     //Object msg = "/hello";
     //Object msg = null;
     SupplierConditional v = SupplierConditional.of(()->msg instanceof HttpRequest)
@@ -106,11 +107,11 @@ public class TestConditional {
         })
         .elseIf(()->msg instanceof FullHttpRequest, ()->{
           System.out.println("-> o instanceof FullHttpRequest");
-          return HttpRequest.of((FullHttpRequest)msg);
+          return (HttpRequest)msg;
         })
         .elseIf(()->msg instanceof String, ()->{
           System.out.println("-> o instanceof String");
-          return HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, (String)msg);
+          return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, (String)msg);
         })
         .elseThrow(()->new IllegalArgumentException("Bad object type: " + msg))
         ;
@@ -121,7 +122,7 @@ public class TestConditional {
   public void consumerConditional() {
     System.out.println("---- consumerConditional ----");
     //Object msg = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-    Object msg = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
+    Object msg = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
     //Object msg = "/hello";
     //Object msg = null;
     ConsumerConditional v = ConsumerConditional.eval(o->o instanceof HttpRequest)

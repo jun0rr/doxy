@@ -31,7 +31,7 @@ import static net.jun0rr.doxy.cfg.PropertiesConfigSource.PROP_SERVER_NAME;
 import static net.jun0rr.doxy.cfg.PropertiesConfigSource.PROP_SERVER_TIMEOUT;
 import static net.jun0rr.doxy.cfg.PropertiesConfigSource.PROP_THREADPOOL_SIZE;
 import static net.jun0rr.doxy.cfg.PropertiesConfigSource.PROP_USERAGENT;
-import net.jun0rr.doxy.common.opt.ParsedOption;
+import net.jun0rr.doxy.opt.ParsedOption;
 import static net.jun0rr.doxy.cfg.DefaultConfigSource.DEFAULT_TIMEOUT;
 
 

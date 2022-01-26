@@ -7,13 +7,13 @@ package net.jun0rr.doxy.http.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import net.jun0rr.doxy.http.HttpExchange;
-import net.jun0rr.doxy.http.HttpResponse;
 
 
 /**

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package net.jun0rr.doxy.client;
-
+/*
 import cn.danielw.fop.ObjectPool;
 import cn.danielw.fop.PoolConfig;
 import cn.danielw.fop.Poolable;
@@ -51,7 +51,7 @@ import us.pserver.tools.Unchecked;
 /**
  *
  * @author Juno
- */
+ *
 public class DoxyClient1 {
   
   public static final String URI_PULL = "/pull";
@@ -289,7 +289,7 @@ public class DoxyClient1 {
       );
       System.out.printf("[TCP] Message received: remote=%s, bytes=%d, channel=%s%n", x.channel().remoteHost(), p.originalLength(), p.channelID());
       if(b.refCnt() > 0) b.release(b.refCnt());
-      return x.withMessage(p).forward();
+      return x.message(p).forward();
     };
   }
   
@@ -308,3 +308,4 @@ public class DoxyClient1 {
   }
   
 }
+*/

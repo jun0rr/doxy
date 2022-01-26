@@ -6,6 +6,7 @@
 package net.jun0rr.doxy.common;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpContent;
 import java.nio.ByteBuffer;
 import java.util.function.IntFunction;
 
@@ -18,6 +19,19 @@ public interface ToNioBuffer {
   
   public static ByteBuffer apply(ByteBuf buf) {
     return apply(buf, ByteBuffer::allocate, true);
+  }
+  
+  public static ByteBuffer apply(HttpContent ct) {
+    return apply(ct, ByteBuffer::allocate);
+  }
+  
+  public static ByteBuffer apply(HttpContent ct, IntFunction<ByteBuffer> alloc) {
+    ByteBuffer buffer = ByteBuffer.wrap(new byte[0]);
+    if(ct.content() != null && ct.content().isReadable()) {
+      buffer = apply(ct.content(), alloc, true);
+    }
+    if(ct.refCnt() > 0) ct.release(ct.refCnt());
+    return buffer;
   }
   
   public static ByteBuffer apply(ByteBuf buf, IntFunction<ByteBuffer> alloc, boolean release) {

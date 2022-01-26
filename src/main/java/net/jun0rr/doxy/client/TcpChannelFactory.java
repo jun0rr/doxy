@@ -29,7 +29,7 @@ public class TcpChannelFactory implements ObjectFactory<TcpChannel> {
 
   @Override
   public void destroy(TcpChannel t) {
-    t.eventChain().close().execute();
+    t.events().close();
   }
 
   @Override

@@ -256,7 +256,7 @@ public class DoxyConfigBuilder {
     return cryptAlg;
   }
   
-  public ConfigSourceBuilder setupConfigSources() {
+  public ConfigSourceBuilder configSources() {
     return new ConfigSourceBuilder();
   }
   

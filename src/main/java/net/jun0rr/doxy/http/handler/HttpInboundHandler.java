@@ -8,17 +8,11 @@ package net.jun0rr.doxy.http.handler;
 import net.jun0rr.doxy.tcp.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import java.util.Objects;
-import net.jun0rr.doxy.common.InstanceOf;
 import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
-import net.jun0rr.doxy.http.HttpRequest;
-import net.jun0rr.doxy.http.HttpResponse;
 
 
 /**
@@ -31,39 +25,34 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
   
   private final HttpHandler handler;
   
-  private HttpRequest request;
-  
-  private HttpResponse response;
-  
   public HttpInboundHandler(TcpChannel chn, HttpHandler hnd) {
     this.handler = Objects.requireNonNull(hnd, "Bad null HttpHandler");
     this.channel = Objects.requireNonNull(chn, "Bad null TcpChannel");
   }
   
   private HttpExchange exchange(ChannelHandlerContext ctx, Object msg) {
-    ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx);
-    HttpResponse res = HttpResponse.of(HttpResponseStatus.OK);
-    return InstanceOf.of(HttpRequest.class, r->HttpExchange.of(channel, cnc, r, res))
-        .elseOf(FullHttpRequest.class, r->HttpExchange.of(channel, cnc, HttpRequest.of(r), res))
-        .elseOf(HttpResponse.class, r->{
-          HttpRequest req = HttpRequest.CURRENT_REQUEST.get() != null
-              ? HttpRequest.CURRENT_REQUEST.get()
-              : HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-          return HttpExchange.of(channel, cnc, req, r);
-        })
-        .elseOf(FullHttpResponse.class, r->{
-          HttpRequest req = HttpRequest.CURRENT_REQUEST.get() != null
-              ? HttpRequest.CURRENT_REQUEST.get()
-              : HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
-          return HttpExchange.of(channel, cnc, req, HttpResponse.of(r));
-        })
-        .elseOf(HttpExchange.class, x->x)
-        .elseThrow(o->new HttpInboundException("Unknown message type: %s", o))
-        .apply(msg).get();
+    ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx, channel.session());
+    //System.out.println("[HttpInboundHandler.exchange] msg=" + msg);
+    HttpExchange ex;
+    if(msg instanceof HttpRequest) {
+      ex = HttpExchange.of(channel, cnc, (HttpRequest) msg);
+    }
+    else if(msg instanceof HttpResponse) {
+      ex = HttpExchange.of(channel, cnc, (HttpResponse) msg);
+    }
+    else if(msg instanceof HttpExchange) {
+      ex = (HttpExchange) msg;
+    }
+    else {
+      ex = HttpExchange.of(channel, cnc, msg);
+    }
+    //System.out.println("[HttpInboundHandler.exchange] ex=" + ex);
+    return ex;
   }
   
   @Override 
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    //System.out.println("[HttpInboundHandler.channelRead] handler=" + String.format("%s@%d", handler.getClass().getName(), handler.hashCode()));
     handler.apply(exchange(ctx, msg)).ifPresent(ctx::fireChannelRead);
   }
   

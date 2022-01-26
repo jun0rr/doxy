@@ -5,7 +5,10 @@
  */
 package net.jun0rr.doxy;
 
-import net.jun0rr.doxy.common.opt.DefaultApp;
+import net.jun0rr.doxy.opt.Option;
+import net.jun0rr.doxy.opt.OptionParseException;
+import net.jun0rr.doxy.opt.ParsedOption;
+import net.jun0rr.doxy.opt.DefaultApp;
 
 /**
  *

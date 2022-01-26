@@ -6,10 +6,10 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.GenericFutureListener;
 import net.jun0rr.doxy.cfg.Host;
 
 
@@ -35,11 +35,11 @@ public class TcpClient extends AbstractBootstrapChannel {
     return new TcpClient(boot, setup);
   }
   
-  public EventChain connect(Host host) {
+  public TcpEvents connect(Host host) {
     failOnChannelInitialized();
-    ChannelFuture cf = setupBootstrap().connect(host.toSocketAddr());
-    this.initChannel(cf.channel(), cf);
-    return eventChain();
+    GenericFutureListener<ChannelFuture> con = this::initChannel;
+    setupBootstrap().connect(host.toSocketAddr()).addListener(con);
+    return events();
   }
-  
+
 }

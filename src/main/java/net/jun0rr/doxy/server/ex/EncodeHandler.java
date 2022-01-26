@@ -5,21 +5,9 @@
  */
 package net.jun0rr.doxy.server.ex;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.util.CharsetUtil;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
-import net.jun0rr.doxy.http.HttpRequest;
-import net.jun0rr.doxy.http.HttpResponse;
 
 
 /**

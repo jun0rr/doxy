@@ -35,13 +35,16 @@ public class HttpRouteHandler implements HttpHandler {
   }
   
   private Iterator<HttpHandler> getHandlers(HttpRoute r) {
+    //System.out.println("GET HANDLER: handlers.size=" + handlers.size());
     Iterator<HttpHandler> it = handlers.stream()
+        //.peek(h->System.out.printf("MATCH {%s}.match( {%s} )=%s%n", h, r, h.match(r)))
         .filter(h->h.match(r))
         //.peek(h->System.out.printf("PASSED %s -> %s%n", r, h.route()))
         .map(h->(HttpHandler)h)
         .sorted()
         .iterator();
     if(!it.hasNext()) {
+      //System.out.println("DEFAULT ROUTE HANDLER");
       it = List.of(defaultHandler).iterator();
     }
     return it;

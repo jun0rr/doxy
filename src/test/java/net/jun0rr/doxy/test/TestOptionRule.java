@@ -6,12 +6,12 @@
 package net.jun0rr.doxy.test;
 
 import java.util.List;
-import net.jun0rr.doxy.common.opt.Option;
-import net.jun0rr.doxy.common.opt.OptionParseException;
-import net.jun0rr.doxy.common.opt.ParsedOption;
-import net.jun0rr.doxy.common.opt.StringPad;
-import net.jun0rr.doxy.common.opt.rule.AndOptionRule;
-import net.jun0rr.doxy.common.opt.rule.XorOptionRule;
+import net.jun0rr.doxy.opt.Option;
+import net.jun0rr.doxy.opt.OptionParseException;
+import net.jun0rr.doxy.opt.ParsedOption;
+import net.jun0rr.doxy.opt.StringPad;
+import net.jun0rr.doxy.opt.rule.AndOptionRule;
+import net.jun0rr.doxy.opt.rule.XorOptionRule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

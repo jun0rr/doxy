@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
-import net.jun0rr.doxy.http.HttpResponse;
 import us.pserver.tools.FileSizeFormatter;
 import us.pserver.tools.date.DateDiff;
 
@@ -60,9 +59,16 @@ public class DoxyStatsHandler implements HttpHandler {
     JsonArray hosts = new JsonArray();
     list.stream().map(this::setStats).forEach(hosts::add);
     server.add("hosts", hosts);
-    HttpResponse res = HttpResponse.of(HttpResponseStatus.OK, gson.toJson(server));
-    res.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-    return x.withResponse(res).sendAndClose();
+    String json = gson.toJson(server);
+    return x.empty();
+    //HttpResponse res = HttpResponse.of(HttpResponseStatus.OK, gson.toJson(server));
+    //res.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+    //return x.response(res).sendAndClose();
+    //return x.responseBuilder()
+        //.ok()
+        //.addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON)
+        //.addHeader(HttpHeaderNames.CONTENT_LENGTH, json.length())
+        //.body()
   }
   
   private List<JsonObject> getHostList() {

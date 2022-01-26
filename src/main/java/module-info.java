@@ -12,6 +12,7 @@ module doxy {
   requires io.netty.all;
   requires org.jose4j;
   requires gson;
+  requires ehcache;
   requires fast.object.pool;
   exports net.jun0rr.doxy;
 /*  

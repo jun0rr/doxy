@@ -5,9 +5,12 @@
  */
 package net.jun0rr.doxy.http;
 
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import java.util.Objects;
 
 
@@ -15,10 +18,10 @@ import java.util.Objects;
  *
  * @author Juno
  */
-public class HttpExceptionalResponse extends HttpResponse.HttpResponseImpl {
+public class HttpExceptionalResponse extends DefaultHttpResponse {
   
   public HttpExceptionalResponse(HttpResponseStatus s, Throwable t) {
-    super(s);
+    super(HttpVersion.HTTP_1_1, s);
     Objects.requireNonNull(t, "Bad null Throwable");
     headers().set("x-error-type", t.getClass());
     if(t.getMessage() != null && !t.getMessage().isBlank()) {
@@ -35,7 +38,7 @@ public class HttpExceptionalResponse extends HttpResponse.HttpResponseImpl {
   }
   
   public HttpExceptionalResponse(HttpResponseStatus s, String msg, String cause, StackTraceElement[] stack) {
-    super(s);
+    super(HttpVersion.HTTP_1_1, s);
     headers().set("x-error-message", Objects.requireNonNull(msg, "Bad null message string"));
     Objects.requireNonNull(stack, "Bad null StackTrace");
     if(cause != null) {
@@ -48,7 +51,7 @@ public class HttpExceptionalResponse extends HttpResponse.HttpResponseImpl {
   }
   
   public HttpExceptionalResponse(HttpResponseStatus s, String msg, String cause) {
-    super(s);
+    super(HttpVersion.HTTP_1_1, s);
     headers().set("x-error-message", Objects.requireNonNull(msg, "Bad null message string"));
     if(cause != null) {
       headers().set("x-error-cause", cause);
@@ -57,7 +60,7 @@ public class HttpExceptionalResponse extends HttpResponse.HttpResponseImpl {
   }
   
   public HttpExceptionalResponse(HttpResponseStatus s, String msg) {
-    super(s);
+    super(HttpVersion.HTTP_1_1, s);
     headers().set("x-error-message", Objects.requireNonNull(msg, "Bad null message string"));
     headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
   }

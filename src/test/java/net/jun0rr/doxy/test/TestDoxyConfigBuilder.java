@@ -26,7 +26,7 @@ public class TestDoxyConfigBuilder {
     System.out.println("------ testLoadResourceProperties ------");
     try {
       DoxyConfig cfg = DoxyConfigBuilder.newBuilder()
-          .setupConfigSources()
+          .configSources()
           .fromResourceProps()
           .load()
           .build();
@@ -51,7 +51,7 @@ public class TestDoxyConfigBuilder {
       env.put(SysEnvConfigSource.ENV_SERVER_TIMEOUT, "5000");
       env.put(SysEnvConfigSource.ENV_THREAD_POOL_SIZE, "2");
       DoxyConfig cfg = DoxyConfigBuilder.newBuilder()
-          .setupConfigSources()
+          .configSources()
           .composeWithSystemEnv(env)
           .composeWithResourceProps()
           .fromComposedSource()

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 
 /**
@@ -51,7 +52,8 @@ public interface HttpRoute extends Routable {
   }
   
   public static HttpRoute of(HttpRequest req) {
-    return new HttpRouteImpl(req.uri(), req.method());
+    String uri = HttpUrl.isUrl(req.uri()) ? HttpUrl.of(req.uri()).getURI() : req.uri();
+    return new HttpRouteImpl(uri, req.method());
   }
   
   
@@ -89,15 +91,11 @@ public interface HttpRoute extends Routable {
       //System.out.printf("HttpRoute.match( %s ):%n", r);
       //System.out.printf("  - '%s'.matches( '%s' ): %s%n", this.uri, r.uri(), this.uri.matches(r.uri()));
       //System.out.printf("  - '%s'.matches( '%s' ): %s%n", r.uri(), this.uri(), r.uri().matches(this.uri()));
-      return (methods.isEmpty() || methods.stream()
-          //.peek(m->System.out.printf("  - %s.equals", m))
-          .anyMatch(m->
-          r.methods().stream()
-              //.peek(n->System.out.printf("( %s ): %s%n", n, m.equals(n)))
-              .anyMatch(m::equals)))
-          && (this.uri.equals(r.uri()) 
-          || this.uri.matches(r.uri())
-          || r.uri().matches(this.uri)); 
+      return (this.uri.matches(r.uri())
+          || r.uri().matches(this.uri))
+          && (methods.isEmpty() || methods.stream()
+              //.peek(m->System.out.printf("  - %s.equals", m))
+              .anyMatch(m->r.methods().stream().anyMatch(m::equals))); 
     }
     
     @Override

@@ -5,12 +5,8 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCounted;
-import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import net.jun0rr.doxy.common.MessageContainer;
 
 
@@ -20,11 +16,7 @@ import net.jun0rr.doxy.common.MessageContainer;
  */
 public interface TcpExchange extends MessageContainer {
   
-  public Map<String,Object> attributes();
-  
-  public TcpExchange setAttr(String key, Object val);
-  
-  public <A> Optional<A> getAttr(String key);
+  public TcpSession session();
   
   public TcpChannel channel();
   
@@ -35,6 +27,8 @@ public interface TcpExchange extends MessageContainer {
    * @return Emtpy Optional.
    */
   public Optional<? extends TcpExchange> send();
+  
+  public Optional<? extends TcpExchange> sendAndFlush();
   
   public Optional<? extends TcpExchange> sendAndClose();
   
@@ -58,16 +52,16 @@ public interface TcpExchange extends MessageContainer {
    * @return TcpExchange with new message.
    */
   @Override
-  public TcpExchange withMessage(Object msg);
+  public TcpExchange message(Object msg);
   
   
   
   public static TcpExchange of(TcpChannel boot, ConnectedTcpChannel channel, Object msg) {
-    return new TcpExchangeImpl(boot, channel, new TreeMap<>(), msg);
+    return new TcpExchangeImpl(boot, channel, msg);
   }
   
   public static TcpExchange of(TcpChannel boot, ConnectedTcpChannel channel) {
-    return new TcpExchangeImpl(boot, channel, new TreeMap<>());
+    return new TcpExchangeImpl(boot, channel);
   }
   
   
@@ -80,19 +74,16 @@ public interface TcpExchange extends MessageContainer {
     
     protected final ConnectedTcpChannel connected;
     
-    protected final Map<String,Object> attributes;
-    
     protected final Object message;
     
-    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, Map<String,Object> attrs, Object msg) {
+    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, Object msg) {
       this.boot = boot;
       this.connected = connected;
-      this.attributes = attrs;
       this.message = msg;
     }
     
-    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, Map<String,Object> attrs) {
-      this(boot, connected, attrs, null);
+    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected) {
+      this(boot, connected, null);
     }
     
     @Override
@@ -101,26 +92,13 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
+    public TcpSession session() {
+      return connected.session();
+    }
+    
+    @Override
     public TcpChannel bootstrapChannel() {
       return boot;
-    }
-    
-    @Override
-    public Map<String, Object> attributes() {
-      return attributes;
-    }
-    
-    @Override
-    public TcpExchange setAttr(String key, Object val) {
-      if(key != null && val != null) {
-        attributes.put(key, val);
-      }
-      return this;
-    }
-    
-    @Override
-    public <T> Optional<T> getAttr(String key) {
-      return Optional.ofNullable((T)attributes.get(key));
     }
     
     @Override
@@ -129,23 +107,29 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public TcpExchange withMessage(Object msg) {
+    public TcpExchange message(Object msg) {
       if(message != null && message != msg && message instanceof ReferenceCounted) {
         ReferenceCounted r = (ReferenceCounted) message;
         if(r.refCnt() > 0) r.release(r.refCnt());
       }
-      return new TcpExchangeImpl(boot, connected, attributes, msg);
+      return new TcpExchangeImpl(boot, connected, msg);
     }
     
     @Override
     public Optional<? extends TcpExchange> send() {
-      connected.eventChain().write(message).execute();
+      connected.events().write(message);
+      return empty();
+    }
+    
+    @Override
+    public Optional<? extends TcpExchange> sendAndFlush() {
+      connected.events().writeAndFlush(message);
       return empty();
     }
     
     @Override
     public Optional<? extends TcpExchange> sendAndClose() {
-      connected.eventChain().write(message).close().execute();
+      connected.events().writeAndFlush(message).close();
       return empty();
     }
     

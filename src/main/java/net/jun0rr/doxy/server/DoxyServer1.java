@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package net.jun0rr.doxy.server;
-
+/*
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.EventLoopGroup;
@@ -53,7 +53,7 @@ import us.pserver.tools.Hash;
 /**
  *
  * @author Juno
- */
+ *
 public class DoxyServer1 {
   
   public static final String ATTR_OUT_ENABLED = "output-enabled";
@@ -157,7 +157,7 @@ public class DoxyServer1 {
       else {
         res = HttpResponse.of(HttpResponseStatus.NO_CONTENT);
       }
-      return x.withResponse(res).forward();
+      return x.response(res).forward();
     };
   }
   
@@ -198,7 +198,7 @@ public class DoxyServer1 {
           .onComplete(c->System.out.println("[HTTP] Shutdown completed"))
           .execute();
       return x.setAttr(ATTR_OUT_ENABLED, false)
-          .withResponse(HttpResponse.of(HttpResponseStatus.OK))
+          .response(HttpResponse.of(HttpResponseStatus.OK))
           .sendAndClose();
     };
   }
@@ -282,3 +282,4 @@ public class DoxyServer1 {
   }
   
 }
+*/

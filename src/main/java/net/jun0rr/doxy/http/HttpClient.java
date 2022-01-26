@@ -7,7 +7,6 @@ package net.jun0rr.doxy.http;
 
 import net.jun0rr.doxy.tcp.*;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import net.jun0rr.doxy.cfg.Host;
@@ -35,11 +34,10 @@ public class HttpClient extends AbstractBootstrapChannel {
     return new HttpClient(boot, setup);
   }
   
-  public EventChain connect(Host host) {
+  public TcpEvents connect(Host host) {
     failOnChannelInitialized();
-    ChannelFuture cf = setupBootstrap().connect(host.toSocketAddr());
-    this.initChannel(cf.channel(), cf);
-    return eventChain();
+    initChannel(setupBootstrap().connect(host.toSocketAddr()));
+    return events();
   }
   
 }

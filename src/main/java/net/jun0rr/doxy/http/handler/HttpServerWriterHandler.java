@@ -11,9 +11,10 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -22,7 +23,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import net.jun0rr.doxy.http.HttpExchange;
-import net.jun0rr.doxy.http.HttpResponse;
 
 
 /**
@@ -51,37 +51,25 @@ public class HttpServerWriterHandler extends ChannelOutboundHandlerAdapter {
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
-      HttpResponse rsp;
-      if(msg instanceof HttpExchange) {
-        rsp = ((HttpExchange)msg).response();
+      Object out = msg;
+      if(out instanceof HttpExchange) {
+        HttpExchange x = (HttpExchange) out;
+        out = x.message() != null ? x.message() : x.response();
       }
-      else if(msg instanceof FullHttpResponse) {
-        rsp = HttpResponse.of((FullHttpResponse) msg);
+      if(out instanceof HttpResponse) {
+        HttpResponse rsp = (HttpResponse) out;
+        if(!headers.isEmpty()) rsp.headers().add(headers);
+        rsp.headers()
+            .set(HttpHeaderNames.DATE, datefmt.format(Instant.now()))
+            .set(HttpHeaderNames.SERVER, serverName);
       }
-      else if(msg instanceof HttpResponse) {
-        rsp = (HttpResponse) msg;
+      if(out instanceof String) {
+        out = Unpooled.copiedBuffer((String)out, StandardCharsets.UTF_8);
       }
-      else {
-        throw new IllegalStateException("Bad message type: " + msg.getClass().getName());
+      if(out instanceof ByteBuf) {
+        out = new DefaultHttpContent((ByteBuf) out);
       }
-      if(rsp.message() != null) {
-        ByteBuf buf;
-        if(rsp.message() instanceof CharSequence) {
-          buf = Unpooled.copiedBuffer(rsp.<CharSequence>message(), StandardCharsets.UTF_8);
-        }
-        else {
-          buf = rsp.message();
-        }
-        if(buf.readableBytes() > 0) {
-          rsp.headers().set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
-          rsp = rsp.withMessage(buf);
-        }
-      }
-      if(!headers.isEmpty()) rsp.headers().add(headers);
-      rsp.headers()
-          .set(HttpHeaderNames.DATE, datefmt.format(Instant.now()))
-          .set(HttpHeaderNames.SERVER, serverName);
-      ctx.writeAndFlush(rsp, cp);
+      ctx.writeAndFlush(out, cp);
     }
     catch(Exception e) {
       this.exceptionCaught(ctx, e);

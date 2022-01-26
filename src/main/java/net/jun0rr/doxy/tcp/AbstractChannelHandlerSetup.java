@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 
 /**
@@ -18,41 +17,52 @@ import java.util.function.Supplier;
  */
 public abstract class AbstractChannelHandlerSetup<H extends ChannelHandler> implements ChannelHandlerSetup<H> {
 
-  private final List<Supplier<H>> inputHandlers;
+  protected final List<H> inputHandlers;
   
-  private final List<Supplier<H>> outputHandlers;
+  protected final List<H> outputHandlers;
   
-  private final List<Supplier<Consumer<TcpExchange>>> connectHandlers;
+  protected final List<Consumer<TcpExchange>> connectHandlers;
   
-  private Optional<SSLHandlerFactory> sslHandlerFactory;
+  protected final List<H> readCompleteHandlers;
+  
+  protected Optional<SSLHandlerFactory> sslHandlerFactory;
   
   protected AbstractChannelHandlerSetup() {
     this.inputHandlers = new LinkedList<>();
     this.outputHandlers = new LinkedList<>();
     this.connectHandlers = new LinkedList<>();
+    this.readCompleteHandlers = new LinkedList<>();
     this.sslHandlerFactory = Optional.empty();
   }
   
   @Override
-  public ChannelHandlerSetup<H> addConnectHandler(Supplier<Consumer<TcpExchange>> sup) {
-    if(sup != null) {
-      this.connectHandlers.add(sup);
+  public ChannelHandlerSetup<H> addConnectHandler(Consumer<TcpExchange> cs) {
+    if(cs != null) {
+      this.connectHandlers.add(cs);
     }
     return this;
   }
   
   @Override
-  public ChannelHandlerSetup<H> addInputHandler(Supplier<H> sup) {
-    if(sup != null) {
-      this.inputHandlers.add(sup);
+  public ChannelHandlerSetup<H> addReadCompleteHandler(H h) {
+    if(h != null) {
+      this.readCompleteHandlers.add(h);
     }
     return this;
   }
   
   @Override
-  public ChannelHandlerSetup<H> addOutputHandler(Supplier<H> sup) {
-    if(sup != null) {
-      this.outputHandlers.add(sup);
+  public ChannelHandlerSetup<H> addInputHandler(H h) {
+    if(h != null) {
+      this.inputHandlers.add(h);
+    }
+    return this;
+  }
+  
+  @Override
+  public ChannelHandlerSetup<H> addOutputHandler(H h) {
+    if(h != null) {
+      this.outputHandlers.add(h);
     }
     return this;
   }
@@ -76,18 +86,23 @@ public abstract class AbstractChannelHandlerSetup<H extends ChannelHandler> impl
   }
   
   @Override
-  public List<Supplier<H>> inputHandlers() {
+  public List<H> inputHandlers() {
     return inputHandlers;
   }
   
   @Override
-  public List<Supplier<H>> outputHandlers() {
+  public List<H> outputHandlers() {
     return outputHandlers;
   }
   
   @Override
-  public List<Supplier<Consumer<TcpExchange>>> connectHandlers() {
+  public List<Consumer<TcpExchange>> connectHandlers() {
     return connectHandlers;
+  }
+  
+  @Override
+  public List<H> readCompleteHandlers() {
+    return readCompleteHandlers;
   }
   
 }

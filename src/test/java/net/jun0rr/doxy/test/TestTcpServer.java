@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import net.jun0rr.doxy.cfg.Host;
-import net.jun0rr.doxy.tcp.TcpChannel;
 import net.jun0rr.doxy.tcp.TcpChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.TcpClient;
 import net.jun0rr.doxy.tcp.TcpHandler;
@@ -21,6 +20,7 @@ import net.jun0rr.doxy.tcp.TcpServer;
 import org.junit.jupiter.api.Test;
 import net.jun0rr.doxy.tcp.ChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.SSLHandlerFactory;
+import net.jun0rr.doxy.tcp.TcpEvents;
 import org.junit.jupiter.api.Assertions;
 
 
@@ -40,70 +40,73 @@ public class TestTcpServer {
       String message = Instant.now().toString();
       ChannelHandlerSetup<TcpHandler> setup = TcpChannelHandlerSetup.newSetup()
           .enableSSL(ssl)
-          .addConnectHandler(()-> x->{
+          .addConnectHandler(x->{
             System.out.println("[SERVER] Client connected: " + x.channel().remoteHost());
           })
-          .addInputHandler(()-> x->{
-            return x.withMessage(x.<ByteBuf>message().toString(StandardCharsets.UTF_8)).forward();
+          .addReadCompleteHandler(x->{
+            System.out.println("[SERVER] Read Complete");
+            return x.empty();
           })
-          .addInputHandler(()-> x->{
+          .addInputHandler(x->{
+            return x.message(x.<ByteBuf>message().toString(StandardCharsets.UTF_8)).forward();
+          })
+          .addInputHandler(x->{
             System.out.println("[SERVER] Received: " + x.message());
             Assertions.assertEquals(message, x.message());
             return x.forward();
           })
-          .addInputHandler(()-> x->{
+          .addInputHandler(x->{
             return x.sendAndClose();
           })
-          .addOutputHandler(()-> x->{
+          .addOutputHandler(x->{
             System.out.println("[SERVER] Output1: " + x.message());
-            return x.withMessage(Unpooled.copiedBuffer(x.<String>message(), StandardCharsets.UTF_8)).forward();
+            return x.message(Unpooled.copiedBuffer(x.<String>message(), StandardCharsets.UTF_8)).forward();
           })
-          .addOutputHandler(()-> x->{
+          .addOutputHandler(x->{
             System.out.println("[SERVER] Output2: " + x.message());
             return x.forward();
           });
-      TcpChannel server = TcpServer.open(setup)
+      TcpEvents server = TcpServer.open(setup)
           .bind(host)
-          .onComplete(c->System.out.println("[SERVER] listening on " + c.channel().localHost()))
-          .executeSync()
-          .channel();
+          .onComplete(c->System.out.println("[SERVER] listening on " + c.channel().localAddress()))
+          .sync();
       setup = TcpChannelHandlerSetup.newSetup()
           .enableSSL(SSLHandlerFactory.forClient())
-          .addInputHandler(()-> x->{
-            return x.withMessage(x.<ByteBuf>message().toString(StandardCharsets.UTF_8)).forward();
+          .addReadCompleteHandler(x->{
+            System.out.println("[CLIENT] Read Complete");
+            return x.empty();
           })
-          .addInputHandler(()-> x->{
+          .addInputHandler(x->{
+            return x.message(x.<ByteBuf>message().toString(StandardCharsets.UTF_8)).forward();
+          })
+          .addInputHandler(x->{
             System.out.println("[CLIENT] Received: " + x.message());
             Assertions.assertEquals(message, x.message());
             return x.forward();
           })
-          .addInputHandler(()-> x->{
-            x.channel().eventChain()
+          .addInputHandler(x->{
+            x.channel().events()
                 .shutdown()
-                .onComplete(c->System.out.println("[CLIENT] Shutdown completed!"))
-                .execute();
+                .onComplete(c->System.out.println("[CLIENT] Shutdown completed!"));
             return x.empty();
           })
-          .addOutputHandler(()-> x->{
+          .addOutputHandler(x->{
             System.out.println("[CLIENT] Output1: " + x.message());
-            return x.withMessage(Unpooled.copiedBuffer(x.<String>message(), StandardCharsets.UTF_8)).forward();
+            return x.message(Unpooled.copiedBuffer(x.<String>message(), StandardCharsets.UTF_8)).forward();
           })
-          .addOutputHandler(()-> x->{
+          .addOutputHandler(x->{
             System.out.println("[CLIENT] Output2: " + x.message());
             return x.forward();
           });
       TcpClient.open(setup)
           .connect(host)
-          .onComplete(c->System.out.println("[CLIENT] Connected to: " + c.channel().remoteHost()))
+          .onComplete(c->System.out.println("[CLIENT] Connected to: " + c.channel().remoteAddress()))
           //.write(Unpooled.copiedBuffer(message, StandardCharsets.UTF_8))
-          .write(message)
+          .writeAndFlush(message)
           .onComplete(c->System.out.println("[CLIENT] Message sent!"))
-          .execute()
           .awaitShutdown();
-      server.eventChain()
-          .shutdown()
+      server.shutdown()
           .onComplete(c->System.out.println("[SERVER] Shutdown completed!"))
-          .execute()
           .awaitShutdown();
     }
     catch(Exception e) {
@@ -122,74 +125,40 @@ public class TestTcpServer {
       String message = Instant.now().toString();
       ChannelHandlerSetup setup = TcpChannelHandlerSetup.newSetup()
           .enableSSL(ssl)
-          .addConnectHandler(()-> x->{
+          .addConnectHandler(x->{
             System.out.println("[SERVER] Client connected: " + x.channel().remoteHost());
             ByteBuf msg = Unpooled.copiedBuffer(message, StandardCharsets.UTF_8);
-            x.channel().eventChain().write(msg)
+            x.channel().events().writeAndFlush(msg)
                 .onComplete(c->System.out.println("[SERVER] Message writed!"))
-                .onComplete(c->x.bootstrapChannel().eventChain().shutdown()
-                    .onComplete(cc->System.out.println("[SERVER] Shutdown complete!"))
-                    .execute())
-                .execute();
+                .onComplete(c->x.bootstrapChannel().events()
+                    .shutdown()
+                    .onComplete(cc->System.out.println("[SERVER] Shutdown complete!")))
+                .close();
           });
-      TcpChannel server = TcpServer.open(setup)
+      TcpEvents server = TcpServer.open(setup)
           .bind(host)
-          .onComplete(c->System.out.println("[SERVER] Listening on " + c.channel().localHost()))
-          .executeSync()
-          .channel();
+          .onComplete(c->System.out.println("[SERVER] Listening on " + c.channel().localAddress()))
+          .sync();
       setup = TcpChannelHandlerSetup.newSetup()
           .enableSSL(SSLHandlerFactory.forClient())
-          .addInputHandler(()-> x->{
-            return x.withMessage(x.<ByteBuf>message().toString(StandardCharsets.UTF_8)).forward();
+          .addInputHandler(x->{
+            return x.message(x.<ByteBuf>message().toString(StandardCharsets.UTF_8)).forward();
           })
-          .addInputHandler(()-> x->{
+          .addInputHandler(x->{
             System.out.println("[CLIENT] Received: " + x.message());
             Assertions.assertEquals(message, x.message());
             return x.forward();
           })
-          .addInputHandler(()-> x->{
-            x.bootstrapChannel().eventChain()
+          .addInputHandler(x->{
+            x.bootstrapChannel().events()
                 .shutdown()
-                .onComplete(c->System.out.println("[CLIENT] Shutdown completed!"))
-                .execute();
+                .onComplete(c->System.out.println("[CLIENT] Shutdown completed!"));
             return x.empty();
           });
       TcpClient.open(setup)
           .connect(host)
-          .execute()
           .awaitShutdown();
-      server.eventChain().awaitShutdown();
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-      throw e;
-    }
-  }
-  
-  //@Test
-  public void timestampServer() throws InterruptedException, URISyntaxException {
-    System.out.println("------ timestampServer ------");
-    try {
-      Host host = Host.of("localhost", 1212);
-      Path kspath = Paths.get(getClass().getClassLoader().getResource("doxy.jks").toURI());
-      SSLHandlerFactory ssl = SSLHandlerFactory.forServer(kspath, "32132155".toCharArray());
-      String message = Instant.now().toString();
-      ChannelHandlerSetup setup = TcpChannelHandlerSetup.newSetup()
-          //.enableSSL(ssl)
-          .addConnectHandler(()-> x->{
-            System.out.println("[SERVER] Client connected: " + x.channel().remoteHost());
-          })
-          .addOutputHandler(()-> x->{
-            return x.withMessage(Unpooled.copiedBuffer(x.<String>message(), StandardCharsets.UTF_8)).sendAndClose();
-          });
-      TcpServer.open(setup)
-          .bind(host)
-          .onComplete(c->System.out.println("[SERVER] Listening on " + c.channel().localHost()))
-          .write(message)
-          .onComplete(c->System.out.println("[SERVER] Message sent " + c.channel().remoteHost()))
-          //.onComplete(c->c.channel().events().close().execute())
-          .executeSync()
-          .awaitShutdown();
+      server.awaitShutdown();
     }
     catch(Exception e) {
       e.printStackTrace();

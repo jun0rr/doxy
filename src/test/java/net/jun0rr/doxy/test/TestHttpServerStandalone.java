@@ -5,9 +5,10 @@
  */
 package net.jun0rr.doxy.test;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import net.jun0rr.doxy.cfg.Host;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.Test;
  * @author Juno
  */
 public class TestHttpServerStandalone {
-  
+  /*
   @Test
   public void method() throws InterruptedException {
     try {
@@ -34,7 +35,7 @@ public class TestHttpServerStandalone {
       SSLHandlerFactory factory = SSLHandlerFactory.forServer(Paths.get("/home/juno/java/doxy.jks"), "32132155".toCharArray());
       ChannelHandlerSetup<HttpHandler> setup = HttpServerHandlerSetup.newSetup()
           .addOutputHandler(()->x->{
-            System.out.println("[SERVER] HttpHandler (R1) >>> " + x.response().message());
+            System.out.println("[SERVER] HttpHandler (R1) >>> " + x.message());
             return x.forward();
           })
           .addConnectHandler(()->x->{
@@ -42,28 +43,50 @@ public class TestHttpServerStandalone {
           })
           .addRouteHandler(HttpRoute.post("/.*"), ()->x->{
             System.out.println("[ROUTE-A] POST /.*");
+            System.out.printf("[ROUTE-A] isHttpMessage=%s, isHttpContent=%s, isLastHttpContent=%s, isEmptyLastContent=%s%n", x.isHttpMessage(), x.isHttpContent(), x.isLastHttpContent(), x.isEmptyLastContent());
             x.response().headers().add("x-routeA", x.request().uri());
-            return x.withResponse(x.response().withMessage(x.request().message())).sendAndClose();
+            if(x.isHttpMessage()) {
+              return x.responseBuilder().ok().done().send();
+            }
+            else {
+              return x.sendAndClose();
+            }
           })
           .addRouteHandler(HttpRoute.get("/echo.*"), ()->x->{
             System.out.println("[ROUTE-B] GET /echo.*");
+            System.out.printf("[ROUTE-B] isHttpMessage=%s, isHttpContent=%s, isLastHttpContent=%s, isEmptyLastContent=%s%n", x.isHttpMessage(), x.isHttpContent(), x.isLastHttpContent(), x.isEmptyLastContent());
             RequestParam pars = RequestParam.fromUriQueryString(x.request().uri());
-            x.response().headers().set(CONNECTION, CLOSE);
-            x.response().headers().add("x-routeB", x.request().uri());
-            return x.withResponse(x.response().withMessage(pars.get("message").toString())).sendAndClose();
+            if(x.isLastHttpContent()) {
+              return x.responseBuilder()
+                  .addHeader(CONNECTION, CLOSE)
+                  .addHeader("x-routeB", x.request().uri())
+                  .body(Unpooled.copiedBuffer(pars.get("message").toString(), StandardCharsets.UTF_8))
+                  .done()
+                  .sendAndClose();
+            }
+            return x.empty();
           })
           .addRouteHandler(HttpRoute.any("/release/\\w+"), ()->x->{
             System.out.println("[ROUTE-C] ANY /release/\\w+");
+            System.out.printf("[ROUTE-C] isHttpMessage=%s, isHttpContent=%s, isLastHttpContent=%s, isEmptyLastContent=%s%n", x.isHttpMessage(), x.isHttpContent(), x.isLastHttpContent(), x.isEmptyLastContent());
             RequestParam par = RequestParam.fromUriPattern("/release/{cid}", x.request().uri());
-            x.response().headers().set(CONNECTION, CLOSE);
-            x.response().headers().add("x-routeC", x.request().uri());
-            x.response().headers().add("x-channel-id", par.get("cid").toString());
-            return x.withResponse(x.response().withMessage(x.request().message())).sendAndClose();
+            if(x.isLastHttpContent()) {
+              return x.responseBuilder()
+                  .addHeader(CONNECTION, CLOSE)
+                  .addHeader("x-routeC", x.request().uri())
+                  .addHeader("x-channel-id", par.get("cid").toString())
+                  .body(Unpooled.copiedBuffer(par.get("cid").toString(), StandardCharsets.UTF_8))
+                  .done()
+                  .sendAndClose();
+            }
+            return x.empty();
           })
           .enableSSL(factory)
           .addInputHandler(()->x->{
-            System.out.printf("[SERVER] HttpHandler (F1) >>> [%s] %s - %s%n", x.request().method(), x.request().uri(), x.request().protocolVersion());
-            x.request().headers().forEach(e->System.out.printf("   - %s: %s%n", e.getKey(), e.getValue()));
+            if(x.isHttpMessage()) {
+              System.out.printf("[SERVER] HttpHandler (F1) >>> [%s] %s - %s%n", x.request().method(), x.request().uri(), x.request().protocolVersion());
+              x.request().headers().forEach(e->System.out.printf("   - %s: %s%n", e.getKey(), e.getValue()));
+            }
             return x.forward();
           });
       HttpServer server = HttpServer.open(setup);
@@ -77,5 +100,5 @@ public class TestHttpServerStandalone {
       throw e;
     }
   }
-  
+  */
 }

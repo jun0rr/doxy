@@ -20,25 +20,24 @@ public class ConnectedTcpChannel extends AbstractTcpChannel {
   
   protected final ChannelPromise promise;
   
-  public ConnectedTcpChannel(ChannelHandlerContext ctx, ChannelPromise prms) {
+  public ConnectedTcpChannel(ChannelHandlerContext ctx, TcpSession session, ChannelPromise prms) {
     super(Objects.requireNonNull(ctx, "Bad null ChannelHandlerContext")
-        .channel().eventLoop().parent());
+        .channel().eventLoop().parent(), ((prms != null) ? prms : ctx.newSucceededFuture()), session);
     this.context = ctx;
     this.promise = prms;
-    this.initChannel(ctx.channel(), (prms != null) ? prms : ctx.newSucceededFuture());
   }
   
-  public ConnectedTcpChannel(ChannelHandlerContext ctx) {
-    this(ctx, null);
+  public ConnectedTcpChannel(ChannelHandlerContext ctx, TcpSession session) {
+    this(ctx, session, null);
   }
   
   public ChannelHandlerContext channelContext() {
     return context;
   }
   
-  //@Override
-  //public EventContext events() {
-    //return new ConnectedTcpEventContext(this);
-  //}
+  @Override
+  public TcpEvents events() {
+    return new ConnectedTcpEvents(this, context, promise);
+  }
   
 }

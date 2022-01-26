@@ -29,7 +29,7 @@ import us.pserver.tools.Unchecked;
  * @author Juno
  */
 public class TestNettyPerformanceServer {
-  /*
+  
   private ChannelFuture future = null;
   
   @Test
@@ -101,5 +101,5 @@ public class TestNettyPerformanceServer {
       throw Unchecked.unchecked(e);
     }
   }
-  */
+  
 }

@@ -13,7 +13,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpServerCodec;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,13 +25,17 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 import net.jun0rr.doxy.http.handler.HttpOutboundHandler;
+import net.jun0rr.doxy.http.handler.HttpReadCompleteHandler;
 import net.jun0rr.doxy.http.handler.HttpServerWriterHandler;
 import net.jun0rr.doxy.http.handler.HttpRouteHandler;
 import net.jun0rr.doxy.http.handler.HttpServerErrorHandler;
 import net.jun0rr.doxy.http.handler.HttpUncaughtExceptionHandler;
 import net.jun0rr.doxy.http.handler.RoutableHttpHandler;
+import us.pserver.tools.Indexed;
+import us.pserver.tools.Pair;
 
 
 /**
@@ -42,11 +46,11 @@ public class HttpServerHandlerSetup extends AbstractChannelHandlerSetup<HttpHand
   
   public static final String SERVER_NAME = "doxy-http-server";
   
-  private final Map<HttpRoute, Supplier<HttpHandler>> routeHandlers;
+  private final Map<HttpRoute, HttpHandler> routeHandlers;
   
   private BiFunction<HttpExchange,Throwable,Optional<HttpResponse>> uncaughtExceptionHandler;
   
-  private Supplier<HttpHandler> defaultHandler;
+  private HttpHandler defaultHandler;
   
   private final HttpHeaders headers;
   
@@ -56,7 +60,7 @@ public class HttpServerHandlerSetup extends AbstractChannelHandlerSetup<HttpHand
   public HttpServerHandlerSetup(String serverName) {
     super();
     this.routeHandlers = new HashMap<>();
-    this.defaultHandler = ()->HttpHandler.BAD_REQUEST;
+    this.defaultHandler = HttpHandler.BAD_REQUEST;
     this.uncaughtExceptionHandler = new HttpServerErrorHandler();
     this.serverName = Objects.requireNonNull(serverName, "Bad null server name");
     this.headers = new DefaultHttpHeaders();
@@ -81,42 +85,48 @@ public class HttpServerHandlerSetup extends AbstractChannelHandlerSetup<HttpHand
   }
   
   @Override
-  public HttpServerHandlerSetup addConnectHandler(Supplier<Consumer<TcpExchange>> sup) {
-    super.addConnectHandler(sup);
+  public HttpServerHandlerSetup addConnectHandler(Consumer<TcpExchange> cs) {
+    super.addConnectHandler(cs);
     return this;
   }
   
   @Override
-  public HttpServerHandlerSetup addInputHandler(Supplier<HttpHandler> sup) {
-    super.addInputHandler(sup);
+  public HttpServerHandlerSetup addReadCompleteHandler(HttpHandler h) {
+    super.addReadCompleteHandler(h);
     return this;
   }
   
   @Override
-  public HttpServerHandlerSetup addOutputHandler(Supplier<HttpHandler> sup) {
-    super.addOutputHandler(sup);
+  public HttpServerHandlerSetup addInputHandler(HttpHandler h) {
+    super.addInputHandler(h);
     return this;
   }
   
-  public HttpServerHandlerSetup addRouteHandler(HttpRoute r, Supplier<HttpHandler> s) {
+  @Override
+  public HttpServerHandlerSetup addOutputHandler(HttpHandler h) {
+    super.addOutputHandler(h);
+    return this;
+  }
+  
+  public HttpServerHandlerSetup addRouteHandler(HttpRoute r, HttpHandler s) {
     if(r != null && s != null) {
       routeHandlers.put(r, s);
     }
     return this;
   }
   
-  public Map<HttpRoute,Supplier<HttpHandler>> routeHandlers() {
+  public Map<HttpRoute,HttpHandler> routeHandlers() {
     return routeHandlers;
   }
   
-  public HttpServerHandlerSetup setDefaultHandler(Supplier<HttpHandler> s) {
+  public HttpServerHandlerSetup setDefaultHandler(HttpHandler s) {
     if(s != null) {
       defaultHandler = s;
     }
     return this;
   }
   
-  public Supplier<HttpHandler> getDefaultHandler() {
+  public HttpHandler getDefaultHandler() {
     return defaultHandler;
   }
   
@@ -142,25 +152,34 @@ public class HttpServerHandlerSetup extends AbstractChannelHandlerSetup<HttpHand
     return this;
   }
   
+  private String oid(Object o) {
+    return String.format("%s@%d", o.getClass().getName(), o.hashCode());
+  }
+  
   @Override
   public ChannelInitializer<SocketChannel> create(TcpChannel tch) {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
-    List<RoutableHttpHandler> routables = new LinkedList<>();
-    Function<Supplier<Consumer<TcpExchange>>,Supplier<ChannelHandler>> cfn = s->()->new HttpConnectHandler(tch, s.get());
-    Function<Supplier<HttpHandler>,Supplier<ChannelHandler>> ifn = s->()->new HttpInboundHandler(tch, s.get());
-    Function<Supplier<HttpHandler>,Supplier<ChannelHandler>> ofn = s->()->new HttpOutboundHandler(tch, s.get(), uncaughtExceptionHandler);
-    Function<Map.Entry<HttpRoute,Supplier<HttpHandler>>, Supplier<RoutableHttpHandler>> rfn = e->
-        ()->RoutableHttpHandler.of(e.getKey(), e.getValue().get());
-    routeHandlers().entrySet().stream().forEach(e->
-      routables.add(RoutableHttpHandler.of(e.getKey(), e.getValue().get()))
-    );
-    ls.add(HttpServerCodec::new);
+    ls.add(()->new HttpServerCodec());
     ls.add(()->new HttpServerWriterHandler(serverName, headers, uncaughtExceptionHandler));
-    outputHandlers().stream().map(ofn).forEach(ls::add);
-    ls.add(()->new HttpObjectAggregator(1024*1024));
+    Function<HttpHandler,Supplier<ChannelHandler>> ofn = h->()->new HttpOutboundHandler(tch, h, uncaughtExceptionHandler);
+    Function<Consumer<TcpExchange>,Supplier<ChannelHandler>> cfn = c->()->new HttpConnectHandler(tch, c);
+    Function<HttpHandler,Supplier<ChannelHandler>> rfn = h->()->new HttpReadCompleteHandler(tch, h);
+    Function<HttpHandler,Supplier<ChannelHandler>> ifn = h->()->new HttpInboundHandler(tch, h);
+    outputHandlers().stream()
+        .map(Indexed.builder())
+        .sorted((a,b)->Integer.compare(b.index(), a.index()))
+        .map(Indexed::value)
+        .map(ofn)
+        .forEach(ls::add);
     connectHandlers().stream().map(cfn).forEach(ls::add);
+    readCompleteHandlers().stream().map(rfn).forEach(ls::add);
     inputHandlers().stream().map(ifn).forEach(ls::add);
-    if(!routables.isEmpty()) ls.add(ifn.apply(()->new HttpRouteHandler(defaultHandler.get(), routables)));
+    List<RoutableHttpHandler> routables = routeHandlers.entrySet().stream()
+        .map(e->new RoutableHttpHandler(e.getKey(), e.getValue()))
+        .collect(Collectors.toList());
+    if(!routables.isEmpty()) {
+      ls.add(()->new HttpInboundHandler(tch, new HttpRouteHandler(defaultHandler, routables)));
+    }
     ls.add(()->new HttpUncaughtExceptionHandler(uncaughtExceptionHandler));
     return new AddingLastChannelInitializer(sslHandlerFactory(), ls);
   }

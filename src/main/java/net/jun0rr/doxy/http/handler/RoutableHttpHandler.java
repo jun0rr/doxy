@@ -73,5 +73,10 @@ public class RoutableHttpHandler implements HttpHandler, Routable, Comparable<Ro
   public int compareTo(RoutableHttpHandler o) {
     return (-1) * route.uri().compareToIgnoreCase(o.route().uri());
   }
-    
+
+  @Override
+  public String toString() {
+    return "RoutableHttpHandler{" + "route=" + route + ", handler=" + handler + '}';
+  }
+  
 }

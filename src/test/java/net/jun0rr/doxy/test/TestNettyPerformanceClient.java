@@ -32,7 +32,7 @@ import us.pserver.tools.Unchecked;
  * @author Juno
  */
 public class TestNettyPerformanceClient {
-  /*
+  
   private static final int TOTAL = 10000;
   
   private AtomicInteger COUNT = new AtomicInteger(TOTAL);
@@ -41,7 +41,7 @@ public class TestNettyPerformanceClient {
   @org.junit.jupiter.api.RepeatedTest(5)
   public void clients() {
     try {
-      EventLoopGroup clients = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors()*8);
+      EventLoopGroup clients = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors()*2);
       //ForkJoinPool.commonPool().submit(()->new TestNettyPerformanceServer().server());
       Host target = Host.of("localhost:4322");
       
@@ -108,5 +108,5 @@ public class TestNettyPerformanceClient {
       throw Unchecked.unchecked(e);
     }
   }
-  */
+  
 }

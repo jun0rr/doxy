@@ -32,7 +32,7 @@ public class TcpInboundHandler extends ChannelInboundHandlerAdapter {
   private TcpExchange exchange(ChannelHandlerContext ctx, Object msg) {
     return (msg instanceof TcpExchange) 
         ? (TcpExchange) msg 
-        : TcpExchange.of(channel, new ConnectedTcpChannel(ctx), msg);
+        : TcpExchange.of(channel, new ConnectedTcpChannel(ctx, channel.session()), msg);
   }
   
   @Override 

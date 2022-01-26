@@ -68,15 +68,14 @@ public interface DoxyChannel extends AutoCloseable {
 
     @Override
     public void close() {
-      channel.eventChain().close().execute();
+      channel.events().close();
     }
 
     @Override
     public void writePacketData(Packet p) {
-      channel.eventChain()
+      channel.events()
           .write(Unpooled.wrappedBuffer(p.data()))
-          .onComplete(e->System.out.printf("[TCP] Packet writed: remote=%s, bytes=%d, channel=%s%n", e.channel().remoteHost(), p.originalLength(), p.channelID()))
-          .execute();
+          .onComplete(e->System.out.printf("[TCP] Packet writed: remote=%s, bytes=%d, channel=%s%n", e.channel().remoteAddress(), p.originalLength(), p.channelID()));
       //channel.write(decoder.decodePacket(p).data());
     }
 

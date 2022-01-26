@@ -9,16 +9,13 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
-import net.jun0rr.doxy.http.HttpRequest;
-import net.jun0rr.doxy.http.HttpResponse;
 import net.jun0rr.doxy.tcp.ConnectedTcpChannel;
 import net.jun0rr.doxy.tcp.TcpChannel;
 
@@ -42,33 +39,19 @@ public class HttpOutboundHandler extends ChannelOutboundHandlerAdapter {
   }
   
   private HttpExchange exchange(ChannelHandlerContext ctx, Object msg, ChannelPromise pms) {
-    ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx, pms);
+    ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx, boot.session(), pms);
     HttpExchange ex;
     if(msg instanceof HttpExchange) {
       ex = (HttpExchange) msg;
     }
     else if(msg instanceof HttpRequest) {
-      ex = HttpExchange.of(boot, cnc, 
-          (HttpRequest) msg, 
-          HttpResponse.of(HttpResponseStatus.OK)
-      );
-    }
-    else if(msg instanceof FullHttpRequest) {
-      ex = HttpExchange.of(boot, cnc, 
-          HttpRequest.of((FullHttpRequest)msg), 
-          HttpResponse.of(HttpResponseStatus.OK)
-      );
+      ex = HttpExchange.of(boot, cnc, (HttpRequest) msg);
     }
     else if(msg instanceof HttpResponse) {
-      ex = HttpExchange.CURRENT_EXCHANGE.get()
-          .withResponse((HttpResponse)msg);
-    }
-    else if(msg instanceof FullHttpResponse) {
-      ex = HttpExchange.CURRENT_EXCHANGE.get()
-          .withResponse(HttpResponse.of((FullHttpResponse)msg));
+      ex = HttpExchange.of(boot, cnc, (HttpResponse) msg);
     }
     else {
-      throw new IllegalStateException(String.format("[%s] Unknown message type: %s", handler.getClass().getName(), msg.getClass()));
+      ex = HttpExchange.of(boot, cnc, msg);
     }
     return ex;
   }

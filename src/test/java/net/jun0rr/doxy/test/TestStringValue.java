@@ -8,7 +8,10 @@ package net.jun0rr.doxy.test;
 import java.net.InetAddress;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.common.Range;
 import net.jun0rr.doxy.common.StringValue;
@@ -26,6 +29,8 @@ public class TestStringValue {
     System.out.println("---- inetAddress ----");
     StringValue sv = StringValue.of("127.0.0.1");
     System.out.println(sv + " --> " + sv.getAsInetAddress());
+    List<Supplier<Consumer<? extends Number>>> sup = new LinkedList();
+    sup.add(()-> (Integer i)->System.out.println(i));
   }
   
   @Test

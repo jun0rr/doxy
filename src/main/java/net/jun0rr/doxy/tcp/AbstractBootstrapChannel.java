@@ -19,7 +19,7 @@ import java.util.Objects;
  *
  * @author Juno
  */
-public class AbstractBootstrapChannel extends AbstractTcpChannel {
+public abstract class AbstractBootstrapChannel extends AbstractTcpChannel {
   
   protected final AbstractBootstrap boot;
   

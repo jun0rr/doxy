@@ -10,7 +10,6 @@ import io.netty.channel.socket.SocketChannel;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 
 /**
@@ -19,11 +18,13 @@ import java.util.function.Supplier;
  */
 public interface ChannelHandlerSetup<H extends ChannelHandler> {
   
-  public ChannelHandlerSetup<H> addConnectHandler(Supplier<Consumer<TcpExchange>> sup);
+  public ChannelHandlerSetup<H> addConnectHandler(Consumer<TcpExchange> cs);
   
-  public ChannelHandlerSetup<H> addInputHandler(Supplier<H> sup);
+  public ChannelHandlerSetup<H> addReadCompleteHandler(H h);
   
-  public ChannelHandlerSetup<H> addOutputHandler(Supplier<H> sup);
+  public ChannelHandlerSetup<H> addInputHandler(H h);
+  
+  public ChannelHandlerSetup<H> addOutputHandler(H h);
   
   public ChannelHandlerSetup<H> enableSSL(SSLHandlerFactory shf);
   
@@ -31,11 +32,13 @@ public interface ChannelHandlerSetup<H extends ChannelHandler> {
   
   public Optional<SSLHandlerFactory> sslHandlerFactory();
   
-  public List<Supplier<H>> inputHandlers();
+  public List<H> inputHandlers();
   
-  public List<Supplier<H>> outputHandlers();
+  public List<H> outputHandlers();
   
-  public List<Supplier<Consumer<TcpExchange>>> connectHandlers();
+  public List<Consumer<TcpExchange>> connectHandlers();
+  
+  public List<H> readCompleteHandlers();
   
   public ChannelInitializer<SocketChannel> create(TcpChannel c);
   

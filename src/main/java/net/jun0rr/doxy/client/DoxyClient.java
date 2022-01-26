@@ -9,29 +9,29 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.LastHttpContent;
 import java.nio.ByteBuffer;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.Optional;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.common.Packet;
-import net.jun0rr.doxy.common.PacketCollection;
 import net.jun0rr.doxy.common.PacketDecoder;
 import net.jun0rr.doxy.common.PacketEncoder;
 import net.jun0rr.doxy.common.ToNioBuffer;
 import net.jun0rr.doxy.http.HttpClient;
 import net.jun0rr.doxy.http.HttpClientHandlerSetup;
+import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
-import net.jun0rr.doxy.http.HttpRequest;
-import net.jun0rr.doxy.http.HttpResponse;
+import net.jun0rr.doxy.http.HttpMessages;
 import net.jun0rr.doxy.tcp.ChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.SSLHandlerFactory;
 import net.jun0rr.doxy.tcp.TcpChannel;
@@ -57,6 +57,8 @@ public class DoxyClient {
   
   public static final String AUTH_FORMAT = "Bearer %s";
   
+  public static final byte[] CONNECT_BYTES = "CONNECT".getBytes(StandardCharsets.UTF_8);
+  
   
   private final DoxyEnvironment env;
   
@@ -66,13 +68,13 @@ public class DoxyClient {
   
   private final PacketDecoder decoder;
   
-  private final Map<String,TcpChannel> tcpChannels;
-  
   private final EventLoopGroup httpGroup;
   
   private final String jwt;
   
-  private final AtomicInteger httpCount;
+  private volatile TcpChannel pushChannel;
+  
+  private volatile TcpChannel pullChannel;
   
   private volatile boolean service;
   
@@ -81,42 +83,81 @@ public class DoxyClient {
     this.encoder = new PacketEncoder(env.configuration().getSecurityConfig().getCryptAlgorithm(), env.getPublicKey());
     this.decoder = new PacketDecoder(env.configuration().getSecurityConfig().getCryptAlgorithm(), env.getPrivateKey());
     this.httpGroup = new NioEventLoopGroup(env.configuration().getThreadPoolSize());
-    this.tcpChannels = new ConcurrentHashMap<>();
     JwtClientFactory jcf = new JwtClientFactory(env);
     this.jwt = Unchecked.call(()->jcf.createAuthToken());
-    this.httpCount = new AtomicInteger(0);
     this.service = true;
   }
   
   private ChannelHandlerSetup<HttpHandler> httpSetup() {
     return HttpClientHandlerSetup.newSetup()
         .enableSSL(SSLHandlerFactory.forClient())
-        .addOutputHandler(httpJwtRequestHandler(jwt))
-        .addInputHandler(this::httpResponseHandler)
-        .addInputHandler(this::httpCloseHandler);
+        .addOutputHandler(this::httpJwtOutputHandler)
+        .addInputHandler(this::httpNoContentFilter)
+        .addInputHandler(this::httpContentHandler);
   }
   
-  private void sendHttpRequest(HttpRequest req) {
+  private TcpChannel createChannel() {
     Host target = env.configuration().getProxyConfig().getProxyHost() != null
             ? env.configuration().getProxyConfig().getProxyHost()
             : env.configuration().getServerHost();
-    httpCount.incrementAndGet();
-    HttpClient.open(httpGroup, httpSetup())
+    return HttpClient.open(httpGroup, httpSetup())
         .connect(target)
-        .onComplete(e->System.out.println("[HTTP] Connected at " + e.channel().remoteHost()))
+        .channel();
+  }
+  
+  private TcpChannel createPushChannel() {
+    HttpRequest req = HttpMessages.request()
+        .post(URI_PUSH)
+        .addHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_OCTET_STREAM)
+        .addHeader(HttpHeaderNames.CONTENT_ENCODING, HttpHeaderValues.IDENTITY)
+        .addHeader(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED)
+        .addHeader(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE)
+        .build();
+    pushChannel = createChannel().events()
+        .onComplete(e->System.out.println("[HTTP PUSH] Connected at " + e.channel().remoteAddress()))
         .write(req)
-        .onComplete(e->System.out.println("[HTTP] Request Sent: " + req.uri()))
-        .execute();
+        .onComplete(e->System.out.println("[HTTP PUSH] Request Sent!"))
+        .sync()
+        .closeFuture()
+        .onComplete(e->{
+          System.out.println("[HTTP PUSH] Closing...");
+          if(service) createPushChannel();
+        })
+        .channel();
+    return pushChannel;
+  }
+  
+  private TcpChannel createPullChannel() {
+    HttpRequest req = HttpMessages.request()
+        .get(URI_PULL)
+        .addHeader(HttpHeaderNames.ACCEPT, HttpHeaderValues.APPLICATION_OCTET_STREAM)
+        .addHeader(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.IDENTITY)
+        .addHeader(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE)
+        .build();
+    pullChannel = createChannel().events()
+        .onComplete(e->System.out.println("[HTTP PULL] Connected at " + e.channel().remoteAddress()))
+        .write(req)
+        .write(LastHttpContent.EMPTY_LAST_CONTENT)
+        .onComplete(e->System.out.println("[HTTP PULL] Request Sent!"))
+        .sync()
+        .channel()
+        .closeFuture()
+        .onComplete(e->{
+          System.out.println("[HTTP PULL] Closing...");
+          if(service) createPullChannel();
+        })
+        .channel();
+    return pullChannel;
   }
   
   public TcpChannel start() {
     ChannelHandlerSetup<TcpHandler> setup = TcpChannelHandlerSetup.newSetup()
         .addConnectHandler(this::tcpConnectHandler)
+        .addInputHandler(this::tcpConnectRequest)
         .addInputHandler(this::tcpInputHandler);
     this.server = TcpServer.open(setup, 1, env.configuration().getThreadPoolSize())
         .bind(env.configuration().getClientHost())
-        .onComplete(e->System.out.println("[TCP] Server listening on " + e.channel().localHost()))
-        .execute()
+        .onComplete(e->System.out.println("[TCP] Server listening on " + e.channel().localAddress()))
         .channel();
     return server;
   }
@@ -124,8 +165,7 @@ public class DoxyClient {
   public DoxyClient stop() {
     service = false;
     httpGroup.shutdownGracefully();
-    tcpChannels.values().forEach(c->c.eventChain().close().execute());
-    server.eventChain().shutdown().executeSync();
+    server.events().shutdown().sync();
     return this;
   }
   
@@ -137,68 +177,96 @@ public class DoxyClient {
     return this.httpGroup;
   }
   
-  private Consumer<TcpExchange> tcpConnectHandler() {
-    return x->{
-      System.out.println("[TCP] Client Connected: " + x.channel().remoteHost());
-      tcpChannels.put(hash(x.channel()), x.channel());
-    };
+  private void releaseChannel(String id) {
+    server.session().remove(id);
+    HttpRequest req = HttpMessages.request()
+        .get(String.format(URI_RELEASE, id))
+        .addHeader(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE)
+        .build();
+    createChannel().events()
+        .write(req)
+        .onComplete(e->System.out.println("[HTTP RELEASE] Channel: " + id))
+        .close();
   }
   
-  private TcpHandler tcpInputHandler() {
-    return x->{
-      //System.out.println("[TCP] Message Received: " + x.message());
-      ByteBuffer data = ToNioBuffer.apply(x.message(), env::alloc, true);
-      Packet p = Packet.of(hash(x.channel()), data, env.configuration().getRemoteHost(), 0, data.remaining(), false);
-      System.out.printf("[TCP] Message Received: %s - %s%n", x.channel().remoteHost(), p.channelID());
-      //HttpRequest req = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.POST, URI_PUSH, Unpooled.wrappedBuffer(encoder.encode(p)));
-      HttpRequest req = HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.POST, URI_PUSH, Unpooled.wrappedBuffer(p.toByteBuffer()));
-      sendHttpRequest(req);
-      return x.empty();
-    };
+  private void tcpConnectHandler(TcpExchange x) {
+    System.out.println("[TCP] Client Connected: " + x.channel().remoteHost());
+    String id = hash(x.channel());
+    server.session().put(id, x.channel());
+    x.channel().closeFuture().onComplete(f->releaseChannel(id));
+    if(pushChannel == null || !pushChannel.nettyChannel().isOpen()) {
+      createPushChannel();
+    }
+    if(pullChannel == null || !pullChannel.nettyChannel().isOpen()) {
+      createPullChannel();
+    }
   }
   
-  private HttpHandler httpResponseHandler() {
-    return x->{
-      printResponse(x.response());
-      ByteBuf buf = x.response().message() != null
-          ? x.response().message()
-          : Unpooled.EMPTY_BUFFER;
-      System.out.println("[HTTP] Response Received: " + buf.readableBytes());
-      if(HttpResponseStatus.OK == x.response().status() && buf.isReadable()) {
-        PacketCollection pks = PacketCollection.of(ToNioBuffer.apply(buf, env::alloc, true));
-        pks.stream()
-            .peek(p->System.out.println("[HTTP] Packet Received: " + p.channelID()))
-            .filter(p->tcpChannels.containsKey(p.channelID()))
-            //.map(decoder::decodePacket)
-            .forEach(p->tcpChannels.get(p.channelID())
-                .eventChain()
-                .write(Unpooled.wrappedBuffer(p.data()))
-                .onComplete(e->System.out.println("[TCP] Client Response writed: " + p.originalLength()))
-                .execute()
-            );
-      }
-      return x.forward();
-    };
+  private Optional<? extends TcpExchange> tcpConnectRequest(TcpExchange x) {
+    System.out.println("[DoxyClient.tcpConnectRequest] message=" + x.message());
+    if(x.message() == null) return x.empty();
+    int ridx = x.<ByteBuf>message().readerIndex();
+    int widx = x.<ByteBuf>message().writerIndex();
+    byte[] start = new byte[CONNECT_BYTES.length];
+    x.<ByteBuf>message().readBytes(start);
+    x.<ByteBuf>message().readerIndex(ridx);
+    x.<ByteBuf>message().writerIndex(widx);
+    if(Arrays.equals(CONNECT_BYTES, start)) {
+      return x.message(Unpooled.copiedBuffer("HTTP/1.1 200 Connection established\r\n\r\n", StandardCharsets.UTF_8))
+          .sendAndFlush();
+    }
+    return x.forward();
   }
   
-  private HttpHandler httpCloseHandler() {
-    return x->{
-      x.channel().eventChain().close().execute();
-      if(httpCount.decrementAndGet() < 1 && service) {
-        sendHttpRequest(HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, URI_PULL));
-      }
-      return x.empty();
-    };
+  private Optional<? extends TcpExchange> tcpInputHandler(TcpExchange x) {
+    //ByteBuffer data = ToNioBuffer.apply(x.message(), env::alloc, true);
+    byte[] bs = new byte[x.<ByteBuf>message().readableBytes()];
+    x.<ByteBuf>message().readBytes(bs);
+    Packet p = Packet.of(hash(x.channel()), ByteBuffer.wrap(bs), env.configuration().getRemoteHost(), 0, bs.length, false);
+    System.out.printf("[TCP] Message Received: %s (%d bytes), channelID=%s, md5=%s%n", x.channel().remoteHost(), bs.length, p.channelID(), Hash.md5().of(bs));
+    ByteBuf buf = Unpooled.wrappedBuffer(p.toByteBuffer());
+    String msg = String.format("[HTTP PUSH] Request Sent: %d bytes", buf.readableBytes());
+    pushChannel.events()
+        .write(HttpMessages.content(buf))
+        .onComplete(e->System.out.println(msg));
+    return x.empty();
   }
   
-  private Supplier<HttpHandler> httpJwtRequestHandler(String jwt) {
-    return ()->x->{
+  private Optional<HttpExchange> httpNoContentFilter(HttpExchange x) {
+    return x.isHttpMessage() 
+        && HttpResponseStatus.NO_CONTENT == x.response().status()
+        ? x.empty() : x.forward();
+  }
+  
+  private Optional<HttpExchange> httpContentHandler(HttpExchange x) {
+    if(x.isHttpMessage()) printResponse(x.response());
+    if(x.isHttpContent() && x.<HttpContent>message().content().isReadable()) {
+      Packet p = Packet.of(ToNioBuffer.apply(x.<HttpContent>message(), env::alloc));
+      System.out.println("[HTTP PULL] Packet Received: " + p.channelID());
+      x.session().<TcpChannel>get(p.channelID())
+          .ifPresent(c->c.events()
+              .writeAndFlush(Unpooled.wrappedBuffer(p.data()))
+              .onComplete(e->System.out.println("[TCP] Client Response writed: " + p.originalLength())));
+    }
+    return x.empty();
+  }
+  
+  private Optional<HttpExchange> httpJwtOutputHandler(HttpExchange x) {
+    if(x.isHttpMessage()) {
       x.request().headers().add(
           HttpHeaderNames.AUTHORIZATION, 
           String.format(AUTH_FORMAT, jwt)
       );
-      return x.forward();
-    };
+      x.request().headers().add(
+          HttpHeaderNames.HOST, x.channel().remoteHost().getHostname()
+      );
+      if(env.configuration().getUserAgent() != null) {
+        x.request().headers().add(
+            HttpHeaderNames.USER_AGENT, env.configuration().getUserAgent()
+        );
+      }
+    }
+    return x.forward();
   }
   
   private void printResponse(HttpResponse res) {
@@ -216,7 +284,7 @@ public class DoxyClient {
   }
   
   private String hash(TcpChannel ch) {
-    return Hash.sha256().of(String.format("%s->%s", ch.localHost(), ch.remoteHost()));
+    return Hash.md5().of(String.format("%s->%s", ch.localHost(), ch.remoteHost()));
   }
   
 }

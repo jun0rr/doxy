@@ -5,7 +5,7 @@
  */
 package net.jun0rr.doxy.test;
 
-import net.jun0rr.doxy.common.opt.Option;
+import net.jun0rr.doxy.opt.Option;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

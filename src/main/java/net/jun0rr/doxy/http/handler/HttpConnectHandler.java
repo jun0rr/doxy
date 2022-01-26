@@ -31,8 +31,12 @@ public class HttpConnectHandler extends ChannelInboundHandlerAdapter {
   
   @Override 
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    TcpExchange ex = TcpExchange.of(channel, new ConnectedTcpChannel(ctx, channel.session()));
     SslHandler ssl = ctx.pipeline().get(SslHandler.class);
-    GenericFutureListener lst = f->handler.accept(TcpExchange.of(channel, new ConnectedTcpChannel(ctx), null));
+    GenericFutureListener lst = f->{
+      handler.accept(ex);
+      ctx.fireChannelActive();
+    };
     if(ssl != null) {
       ssl.handshakeFuture().addListener(lst);
     }

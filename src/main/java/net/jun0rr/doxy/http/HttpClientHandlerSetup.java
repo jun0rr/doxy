@@ -12,7 +12,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponse;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +23,9 @@ import java.util.function.Supplier;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 import net.jun0rr.doxy.http.handler.HttpClientWriterHandler;
 import net.jun0rr.doxy.http.handler.HttpOutboundHandler;
+import net.jun0rr.doxy.http.handler.HttpReadCompleteHandler;
 import net.jun0rr.doxy.http.handler.HttpServerErrorHandler;
+import us.pserver.tools.Indexed;
 
 
 /**
@@ -46,14 +48,21 @@ public class HttpClientHandlerSetup extends AbstractChannelHandlerSetup<HttpHand
   @Override
   public ChannelInitializer<SocketChannel> create(TcpChannel tch) {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
-    Function<Supplier<Consumer<TcpExchange>>,Supplier<ChannelHandler>> cfn = s->()->new HttpConnectHandler(tch, s.get());
-    Function<Supplier<HttpHandler>,Supplier<ChannelHandler>> ifn = s->()->new HttpInboundHandler(tch, s.get());
-    Function<Supplier<HttpHandler>,Supplier<ChannelHandler>> ofn = s->()->new HttpOutboundHandler(tch, s.get(), uncaughtExceptionHandler);
-    ls.add(HttpClientCodec::new);
+    HttpClientCodec codec = new HttpClientCodec();
+    ls.add(()->new HttpClientCodec());
     ls.add(()->new HttpClientWriterHandler());
-    outputHandlers().stream().map(ofn).forEach(ls::add);
-    ls.add(()->new HttpObjectAggregator(1024*1024));
+    Function<HttpHandler,Supplier<ChannelHandler>> ofn = h->()->new HttpOutboundHandler(tch, h, uncaughtExceptionHandler);
+    Function<Consumer<TcpExchange>,Supplier<ChannelHandler>> cfn = c->()->new HttpConnectHandler(tch, c);
+    Function<HttpHandler,Supplier<ChannelHandler>> rfn = h->()->new HttpReadCompleteHandler(tch, h);
+    Function<HttpHandler,Supplier<ChannelHandler>> ifn = h->()->new HttpInboundHandler(tch, h);
+    outputHandlers().stream()
+        .map(Indexed.builder())
+        .sorted((a,b)->Integer.compare(b.index(), a.index()))
+        .map(Indexed::value)
+        .map(ofn)
+        .forEach(ls::add);
     connectHandlers().stream().map(cfn).forEach(ls::add);
+    readCompleteHandlers().stream().map(rfn).forEach(ls::add);
     inputHandlers().stream().map(ifn).forEach(ls::add);
     return new AddingLastChannelInitializer(sslHandlerFactory(), ls);
   }

@@ -9,12 +9,12 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import net.jun0rr.doxy.cfg.Host;
-import net.jun0rr.doxy.common.opt.Option;
-import net.jun0rr.doxy.common.opt.rule.AndOptionRule;
-import net.jun0rr.doxy.common.opt.rule.DependencyOptionRule;
-import net.jun0rr.doxy.common.opt.rule.IncompatibilityOptionRule;
-import net.jun0rr.doxy.common.opt.rule.OptionRule;
-import net.jun0rr.doxy.common.opt.rule.XorOptionRule;
+import net.jun0rr.doxy.opt.Option;
+import net.jun0rr.doxy.opt.rule.AndOptionRule;
+import net.jun0rr.doxy.opt.rule.DependencyOptionRule;
+import net.jun0rr.doxy.opt.rule.IncompatibilityOptionRule;
+import net.jun0rr.doxy.opt.rule.OptionRule;
+import net.jun0rr.doxy.opt.rule.XorOptionRule;
 
 /**
  *

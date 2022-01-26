@@ -6,6 +6,8 @@
 package net.jun0rr.doxy.server;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.Objects;
 import java.util.Optional;
@@ -13,8 +15,6 @@ import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.http.HttpExceptionalResponse;
 import net.jun0rr.doxy.http.HttpExchange;
 import net.jun0rr.doxy.http.HttpHandler;
-import net.jun0rr.doxy.http.HttpRequest;
-import net.jun0rr.doxy.http.HttpResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -66,23 +66,27 @@ public class JwtAuthFilter implements HttpHandler {
 
   @Override
   public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
-    printRequest(he.request());
-    if(!he.request().headers().contains(HttpHeaderNames.AUTHORIZATION)) {
-      return he.withResponse(HttpExceptionalResponse.of(
-          HttpResponseStatus.UNAUTHORIZED, 
-          new JwtAuthException("Authorization header missing"))
-      ).sendAndClose();
+    if(he.isHttpMessage()) {
+      printRequest(he.request());
+      if(!he.request().headers().contains(HttpHeaderNames.AUTHORIZATION)) {
+        return he.response(HttpExceptionalResponse.of(
+            HttpResponseStatus.UNAUTHORIZED, 
+            new JwtAuthException("Authorization header missing"))
+        ).sendAndClose();
+      }
+      try {
+        String auth = he.request().headers().get(HttpHeaderNames.AUTHORIZATION);
+        JwtClaims jc = consumer.processToClaims(auth.substring(AUTH_TOKEN_IDX));
+        he.session().put(JWTCLAIMS, jc);
+        return he.forward();
+      }
+      catch(InvalidJwtException e) {
+        e.printStackTrace();
+        return he.response(HttpExceptionalResponse.of(HttpResponseStatus.UNAUTHORIZED, e))
+            .sendAndClose();
+      }
     }
-    try {
-      String auth = he.request().headers().get(HttpHeaderNames.AUTHORIZATION);
-      JwtClaims jc = consumer.processToClaims(auth.substring(AUTH_TOKEN_IDX));
-      he.attributes().put(JWTCLAIMS, jc);
-      return he.forward();
-    }
-    catch(InvalidJwtException e) {
-      return he.withResponse(HttpExceptionalResponse.of(HttpResponseStatus.UNAUTHORIZED, e))
-          .sendAndClose();
-    }
+    return he.forward();
   }
   
   private void printRequest(HttpRequest req) {

@@ -39,10 +39,10 @@ public class HttpServer extends AbstractBootstrapChannel {
     return new HttpServer(boot, setup);
   }
   
-  public EventChain bind(Host host) {
-    ChannelFuture cf = setupServerBootstrap().bind(host.toSocketAddr());
-    this.initChannel(cf.channel(), cf);
-    return eventChain();
+  public TcpEvents bind(Host host) {
+    failOnChannelInitialized();
+    initChannel(setupServerBootstrap().bind(host.toSocketAddr()));
+    return events();
   }
   
   public EventLoopGroup childGroup() {

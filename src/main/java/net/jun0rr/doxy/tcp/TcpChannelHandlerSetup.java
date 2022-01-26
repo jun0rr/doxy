@@ -18,7 +18,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 import net.jun0rr.doxy.tcp.handler.TcpOutboundHandler;
+import net.jun0rr.doxy.tcp.handler.TcpReadCompleteHandler;
 import net.jun0rr.doxy.tcp.handler.TcpWriterHandler;
+import us.pserver.tools.Indexed;
 
 
 /**
@@ -38,16 +40,22 @@ public class TcpChannelHandlerSetup extends AbstractChannelHandlerSetup<TcpHandl
   @Override
   public ChannelInitializer<SocketChannel> create(TcpChannel tch) {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
-    ls.add(TcpWriterHandler::new);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> ofn = s->()->new TcpOutboundHandler(tch, s.get());
-    Function<Supplier<Consumer<TcpExchange>>,Supplier<ChannelHandler>> cfn = s->()->new TcpConnectHandler(tch, s.get());
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> ifn = s->()->new TcpInboundHandler(tch, s.get());
-    for(int i = outputHandlers().size() -1; i >= 0; i--) {
-      ls.add(ofn.apply(outputHandlers().get(i)));
-    }
+    TcpWriterHandler writer = new TcpWriterHandler();
+    ls.add(()->new TcpWriterHandler());
+    Function<TcpHandler,Supplier<ChannelHandler>> ofn = h->()->new TcpOutboundHandler(tch, h);
+    Function<Consumer<TcpExchange>,Supplier<ChannelHandler>> cfn = c->()->new TcpConnectHandler(tch, c);
+    Function<TcpHandler,Supplier<ChannelHandler>> rfn = h->()->new TcpReadCompleteHandler(tch, h);
+    Function<TcpHandler,Supplier<ChannelHandler>> ifn = h->()->new TcpInboundHandler(tch, h);
+    outputHandlers().stream()
+        .map(Indexed.builder())
+        .sorted((a,b)->Integer.compare(b.index(), a.index()))
+        .map(Indexed::value)
+        .map(ofn)
+        .forEach(ls::add);
     connectHandlers().stream().map(cfn).forEach(ls::add);
+    readCompleteHandlers().stream().map(rfn).forEach(ls::add);
     inputHandlers().stream().map(ifn).forEach(ls::add);
-    ls.add(TcpUcaughtExceptionHandler::new);
+    ls.add(()->new TcpUcaughtExceptionHandler());
     return new AddingLastChannelInitializer(sslHandlerFactory(), ls);
   }
   
